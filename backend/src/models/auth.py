@@ -8,6 +8,10 @@ class UserBase(BaseModel):
     full_name: Optional[str] = Field(default=None, max_length=100)
 
 
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
 

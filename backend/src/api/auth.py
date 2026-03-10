@@ -1,8 +1,8 @@
 import uuid
 from fastapi import APIRouter, HTTPException, status
 
-from src.models.auth import UserCreate, UserInDB, UserResponse
-from src.auth.security import get_password_hash
+from src.models.auth import UserCreate, UserInDB, UserResponse, UserLogin
+from src.auth.security import get_password_hash, verify_password
 from src.db.connection import get_database
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -31,3 +31,24 @@ async def register(user_in: UserCreate):
     await users_collection.insert_one(user_db.model_dump(by_alias=True))
 
     return UserResponse(**user_db.model_dump())
+
+
+@router.post("/login", response_model=UserResponse)
+async def login(user_in: UserLogin):
+    db = get_database()
+    users_collection = db["users"]
+
+    user = await users_collection.find_one({"email": user_in.email})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password"
+        )
+
+    if not verify_password(user_in.password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password"
+        )
+
+    return UserResponse(**user)

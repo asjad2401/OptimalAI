@@ -58,3 +58,4 @@ out/
 # ====================
 *.swp
 *~
+frontend/.agent

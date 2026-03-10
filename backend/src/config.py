@@ -5,6 +5,6 @@ class Settings(BaseSettings):
     MONGO_URI: str
     DATABASE_NAME: str = "optimal_ai"
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra='ignore')
 
 settings = Settings()
