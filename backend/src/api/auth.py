@@ -1,8 +1,8 @@
 import uuid
 from fastapi import APIRouter, HTTPException, status
 
-from src.models.auth import UserCreate, UserInDB, UserResponse, UserLogin
-from src.auth.security import get_password_hash, verify_password
+from src.models.auth import UserCreate, UserInDB, UserResponse, UserLogin, Token
+from src.auth.security import get_password_hash, verify_password, create_access_token
 from src.db.connection import get_database
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -32,8 +32,7 @@ async def register(user_in: UserCreate):
 
     return UserResponse(**user_db.model_dump())
 
-
-@router.post("/login", response_model=UserResponse)
+@router.post("/login", response_model=Token)
 async def login(user_in: UserLogin):
     db = get_database()
     users_collection = db["users"]
@@ -51,4 +50,5 @@ async def login(user_in: UserLogin):
             detail="Incorrect email or password"
         )
 
-    return UserResponse(**user)
+    access_token = create_access_token(data={"sub": user["_id"]})
+    return Token(access_token=access_token, token_type="bearer")

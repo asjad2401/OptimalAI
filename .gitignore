@@ -23,6 +23,10 @@ backend/.mypy_cache/
 backend/.coverage
 backend/htmlcov/
 backend/.tox/
+*.pyc
+**/__pycache__/
+*.py[cod]
+*$py.class
 
 # ====================
 # Node / Frontend
