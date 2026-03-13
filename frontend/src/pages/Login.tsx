@@ -2,61 +2,42 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/AuthLayout';
 import { AUTH_ENDPOINTS } from '../config';
+import { validateEmail } from '../utils/validation';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
-  const [isLoading, setIsLoading] = useState(false);
-
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) {
-      setError('Please enter both email and password.');
-      return;
-    }
-    
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email address.');
-      return;
-    }
+
+    const emailError = validateEmail(email);
+    if (emailError) return setError(emailError);
+    if (!password) return setError('Password is required.');
 
     setError('');
-    setIsLoading(true);
+    setLoading(true);
 
     try {
-      const response = await fetch(AUTH_ENDPOINTS.LOGIN, {
+      const res = await fetch(AUTH_ENDPOINTS.LOGIN, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) {
-        setError(data.detail || 'Login failed. Please try again.');
-        return;
-      }
+      if (!res.ok) return setError(data.detail || 'Login failed. Please try again.');
 
-      // Save token (standard approach)
       localStorage.setItem('access_token', data.access_token);
-      
-      console.log('Login successful');
       navigate('/dashboard');
-    } catch (err) {
-      setError('Network error. Please try again later.');
-      console.error('Login error:', err);
+    } catch {
+      setError('Network error. Please try again.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -66,14 +47,14 @@ export const Login: React.FC = () => {
         <div className="auth-form-subtitle">ACCOUNT ACCESS</div>
         <h2 className="auth-form-title">Welcome back</h2>
       </div>
-      
-      <div className="auth-form-divider"></div>
+
+      <div className="auth-form-divider" />
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label className="form-label" htmlFor="email">Email</label>
+          <label className="form-label" htmlFor="login-email">Email</label>
           <input
-            id="email"
+            id="login-email"
             type="email"
             className="form-input"
             placeholder="name@company.com"
@@ -84,11 +65,11 @@ export const Login: React.FC = () => {
 
         <div className="form-group">
           <div className="form-label-row">
-            <label className="form-label" htmlFor="password">Password</label>
+            <label className="form-label" htmlFor="login-password">Password</label>
             <Link to="#" className="forgot-password-link">Forgot password?</Link>
           </div>
           <input
-            id="password"
+            id="login-password"
             type="password"
             className="form-input"
             placeholder="••••••••"
@@ -97,23 +78,18 @@ export const Login: React.FC = () => {
           />
         </div>
 
-        {error && (
-          <div className="error-bar">
-            {error}
-          </div>
-        )}
+        {error && <div className="error-bar">{error}</div>}
 
-        <button type="submit" className="btn-primary" disabled={isLoading}>
-          {isLoading ? 'Signing In...' : 'Sign In'}
+        <button type="submit" className="btn-primary" disabled={loading}>
+          {loading ? 'Signing In...' : 'Sign In'}
         </button>
       </form>
 
-      <div className="form-footer-divider">
-        <span>or</span>
-      </div>
+      <div className="form-footer-divider"><span>or</span></div>
 
       <div className="form-footer-text">
-        Don't have an account? <Link to="/register" className="form-footer-link">Register</Link>
+        Don't have an account?{' '}
+        <Link to="/register" className="form-footer-link">Register</Link>
       </div>
     </AuthLayout>
   );

@@ -63,3 +63,4 @@ out/
 *.swp
 *~
 frontend/.agent
+*.csv
