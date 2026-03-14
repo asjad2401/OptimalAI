@@ -1,5 +1,9 @@
 import re
+from typing import Optional
+
 from pydantic import BaseModel, Field, field_validator
+
+from src.models.amazon import ProductData
 
 
 class ProductInput(BaseModel):
@@ -28,4 +32,4 @@ class ProductInput(BaseModel):
 class ProductAnalysisResponse(BaseModel):
     status: str
     message: str
-    product_identifier: str
+    data: Optional[ProductData] = None
