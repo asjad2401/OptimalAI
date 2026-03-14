@@ -9,6 +9,22 @@ from src.models.amazon import Review
 class AmazonParser:
 
     @staticmethod
+    def _select_first(node, selectors: List[str]):
+        for selector in selectors:
+            el = node.select_one(selector)
+            if el:
+                return el
+        return None
+
+    @staticmethod
+    def _text_first(node, selectors: List[str]) -> Optional[str]:
+        el = AmazonParser._select_first(node, selectors)
+        if not el:
+            return None
+        text = el.get_text(" ", strip=True)
+        return text or None
+
+    @staticmethod
     def parse_title(soup: BeautifulSoup) -> Optional[str]:
         try:
             tag = soup.select_one("#productTitle")
@@ -94,35 +110,55 @@ class AmazonParser:
                 if len(reviews) >= limit:
                     break
                 try:
-                    title_elem = review.select_one(
-                        "a[data-hook='review-title'] span:not(.a-icon-alt):not(.a-letter-space)"
-                    ) or review.select_one("a[data-hook='review-title'] span")
-                    body_elem = review.select_one("span[data-hook='review-body'] span")
-                    rating_elem = review.select_one("i[data-hook='review-star-rating'] span")
-                    verified_elem = review.select_one("span[data-hook='avp-badge']")
+                    title = AmazonParser._text_first(
+                        review,
+                        [
+                            "a[data-hook='review-title'] span:last-child",
+                            "span[data-hook='review-title'] span:last-child",
+                            "a[data-hook='review-title'] span:not(.a-icon-alt):not(.a-letter-space)",
+                            "span[data-hook='review-title']",
+                        ],
+                    )
+                    body = AmazonParser._text_first(
+                        review,
+                        [
+                            "span[data-hook='review-body'] span[data-hook='review-collapsed'] span",
+                            "span[data-hook='review-body'] div[data-hook='review-collapsed'] span",
+                            "span[data-hook='review-body'] span",
+                            "div[data-hook='review-collapsed'] span",
+                            "span[data-hook='review-body']",
+                        ],
+                    )
+                    rating_text = AmazonParser._text_first(
+                        review,
+                        [
+                            "i[data-hook='review-star-rating'] span.a-icon-alt",
+                            "i[data-hook='cmps-review-star-rating'] span.a-icon-alt",
+                            "i.review-rating span.a-icon-alt",
+                            "span[data-hook='review-star-rating']",
+                        ],
+                    )
+                    verified_text = AmazonParser._text_first(
+                        review,
+                        [
+                            "span[data-hook='avp-badge']",
+                            "span[data-hook='vine-badge']",
+                        ],
+                    )
 
-                    if title_elem and body_elem and rating_elem:
-                        rating_match = re.search(r"([\d.]+)", rating_elem.get_text())
+                    if title and body and rating_text:
+                        rating_match = re.search(r"([\d.]+)", rating_text)
                         if not rating_match:
                             continue
-                        rating = float(rating_match.group(1))
                         reviews.append(
                             Review(
-                                title=title_elem.get_text(strip=True),
-                                body=body_elem.get_text(strip=True),
-                                rating=rating,
+                                title=title,
+                                body=body,
+                                rating=float(rating_match.group(1)),
                                 is_verified=bool(
-                                    verified_elem
-                                    and "Verified Purchase" in verified_elem.get_text()
+                                    verified_text and "verified purchase" in verified_text.lower()
                                 ),
                             )
-                        )
-                    else:
-                        print(
-                            f"Skipped malformed review. "
-                            f"Title: {bool(title_elem)}, "
-                            f"Body: {bool(body_elem)}, "
-                            f"Rating: {bool(rating_elem)}"
                         )
                 except Exception as e:
                     print(f"Review parsing exception: {e}")

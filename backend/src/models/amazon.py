@@ -9,7 +9,7 @@ class Review(BaseModel):
     is_verified: bool = False
 
 
-class ProductData(BaseModel):
+class ProductBase(BaseModel):
     asin: str
     url: str
     title: Optional[str] = None
@@ -21,3 +21,15 @@ class ProductData(BaseModel):
     image_url: Optional[str] = None
     reviews: List[Review] = []
     best_seller_link: Optional[str] = None
+<<<<<<< HEAD
+=======
+
+
+class CompetitorData(ProductBase):
+    pass
+
+
+class ProductData(ProductBase):
+    competitor_asins: List[str] = []
+    competitors: List[CompetitorData] = []
+>>>>>>> 6e2bd83 (scraping: SC24 - scrape competitor product data)
