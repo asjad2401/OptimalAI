@@ -22,6 +22,7 @@ class ProductBase(BaseModel):
     reviews: List[Review] = []
     best_seller_link: Optional[str] = None
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 
@@ -33,3 +34,6 @@ class ProductData(ProductBase):
     competitor_asins: List[str] = []
     competitors: List[CompetitorData] = []
 >>>>>>> 6e2bd83 (scraping: SC24 - scrape competitor product data)
+=======
+    competitor_asins: List[str] = []
+>>>>>>> b643191 (scraping: SC23 - identify top competitor products)

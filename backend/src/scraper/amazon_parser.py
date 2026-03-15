@@ -169,15 +169,41 @@ class AmazonParser:
 
     @staticmethod
     def get_best_seller_link(soup: BeautifulSoup) -> Optional[str]:
+        _SELECTORS = [
+            "div.zg-bf-badge-wrapper a.badge-link",
+            "#detailBullets_feature_div ul.zg_hrsr li a",
+            "#detailBullets_feature_div a[href*='/bestsellers/']",
+            "#productDetails_detailBullets_sections1 a[href*='/bestsellers/']",
+            "#productDetails_db_sections a[href*='/bestsellers/']",
+            "table#productDetails_techSpec_section_1 a[href*='/bestsellers/']",
+            "#SalesRank a[href*='/bestsellers/']",
+            "a[href*='/gp/bestsellers/']",
+        ]
         try:
-            block = soup.select_one("#detailBullets_feature_div")
-            if not block:
-                return None
-            links = block.select("ul.zg_hrsr li a")
-            if links:
-                return links[-1].get("href")
-            main_link = block.select_one("a[href*='/bestsellers/']")
-            return main_link.get("href") if main_link else None
+            for selector in _SELECTORS:
+                el = soup.select_one(selector)
+                if el and el.get("href"):
+                    return el.get("href")
         except Exception:
-            return None
+            pass
+        return None
 
+    @staticmethod
+    def parse_competitor_asins(soup: BeautifulSoup, exclude_asin: str, limit: int = 5) -> List[str]:
+        try:
+            asins: List[str] = []
+            items = soup.select("div[id^='gridItemRoot']") or soup.select("li.a-carousel-card")
+            for item in items:
+                if len(asins) >= limit:
+                    break
+                link = item.select_one("a[href*='/dp/']")
+                if not link:
+                    continue
+                match = re.search(r"/dp/([A-Z0-9]{10})", link.get("href", ""))
+                if match:
+                    asin = match.group(1).upper()
+                    if asin != exclude_asin and asin not in asins:
+                        asins.append(asin)
+            return asins
+        except Exception:
+            return []

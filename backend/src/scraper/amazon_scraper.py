@@ -7,9 +7,10 @@ from playwright.async_api import TimeoutError as PlaywrightTimeout
 from src.models.amazon import CompetitorData, ProductData
 from src.scraper.amazon_parser import AmazonParser
 from src.scraper.browser import amazon_page
+from src.scraper.competitor_scraper import scrape_competitors
 
 _BASE_URL = "https://www.amazon.com/dp/{asin}"
-_STATIC_DELAY_MS = 1_500
+_STATIC_DELAY_MS = 2_000
 _DYNAMIC_TIMEOUT_MS = 8_000
 
 _READY_SELECTORS = [
@@ -58,6 +59,23 @@ async def _load_soup(asin: str) -> tuple[str, BeautifulSoup]:
 def _build_product_payload(asin: str, url: str, soup: BeautifulSoup) -> dict:
     title = AmazonParser.parse_title(soup)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    best_seller_link = AmazonParser.get_best_seller_link(soup)
+
+    competitor_asins = AmazonParser.parse_competitor_asins(soup, exclude_asin=asin)
+
+    if len(competitor_asins) < 5 and best_seller_link:
+        try:
+            from_bs = await scrape_competitors(best_seller_link, exclude_asin=asin)
+            for c in from_bs:
+                if c not in competitor_asins:
+                    competitor_asins.append(c)
+                if len(competitor_asins) >= 5:
+                    break
+        except Exception as exc:
+            print(f"[scraper] bestseller competitor scrape failed: {exc}")
+>>>>>>> b643191 (scraping: SC23 - identify top competitor products)
 
     return ProductData(
         asin=asin,
@@ -70,6 +88,7 @@ def _build_product_payload(asin: str, url: str, soup: BeautifulSoup) -> dict:
         price=AmazonParser.parse_price(soup),
         image_url=AmazonParser.parse_image_url(soup),
         reviews=AmazonParser.parse_reviews(soup, limit=10),
+<<<<<<< HEAD
         best_seller_link=AmazonParser.get_best_seller_link(soup),
 =======
     best_seller_link = AmazonParser.get_best_seller_link(soup)
@@ -128,4 +147,8 @@ async def scrape_product(identifier: str) -> ProductData:
         competitor_asins=competitor_asins,
         competitors=competitors,
 >>>>>>> 6e2bd83 (scraping: SC24 - scrape competitor product data)
+=======
+        best_seller_link=best_seller_link,
+        competitor_asins=competitor_asins[:5],
+>>>>>>> b643191 (scraping: SC23 - identify top competitor products)
     )
