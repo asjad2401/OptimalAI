@@ -1,7 +1,9 @@
 import re
+import uuid
+from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.models.amazon import ProductData
 
@@ -33,3 +35,13 @@ class ProductAnalysisResponse(BaseModel):
     status: str
     message: str
     data: Optional[ProductData] = None
+
+
+class ProductAnalysisRecord(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), alias="_id")
+    product_identifier: str
+    asin: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    data: ProductData
+
+    model_config = ConfigDict(populate_by_name=True)

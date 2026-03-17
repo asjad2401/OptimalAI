@@ -2,6 +2,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
+from src.db.scraper import save_product_analysis
 from src.models.scraper import ProductAnalysisResponse, ProductInput
 from src.scraper.amazon_scraper import scrape_product
 
@@ -13,6 +14,7 @@ router = APIRouter(prefix="/scraper", tags=["scraper"])
 async def analyze_product(item: ProductInput):
     try:
         data = await scrape_product(item.product_identifier)
+        await save_product_analysis(item.product_identifier, data)
         return ProductAnalysisResponse(status="success", message="Scraped successfully.", data=data)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
