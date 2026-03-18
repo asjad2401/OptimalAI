@@ -39,6 +39,7 @@ class ProductAnalysisResponse(BaseModel):
 
 class ProductAnalysisRecord(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), alias="_id")
+    user_id: str
     product_identifier: str
     asin: str
     created_at: datetime = Field(default_factory=datetime.utcnow)

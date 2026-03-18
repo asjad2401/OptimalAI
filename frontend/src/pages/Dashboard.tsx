@@ -3,6 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { SCRAPER_ENDPOINTS } from '../config';
 import { validateProductIdentifier } from '../utils/validation';
 
+const getErrorMessage = (payload: unknown): string => {
+  if (!payload) return 'Request failed.';
+  if (typeof payload === 'string') return payload;
+  if (Array.isArray(payload)) {
+    const first = payload[0];
+    return getErrorMessage(first);
+  }
+  if (typeof payload === 'object') {
+    const obj = payload as Record<string, unknown>;
+    if (obj.message) return getErrorMessage(obj.message);
+    if (obj.detail) return getErrorMessage(obj.detail);
+    if (obj.error) return getErrorMessage(obj.error);
+  }
+  return 'Request failed.';
+};
+
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [identifier, setIdentifier] = useState('');
@@ -29,22 +45,41 @@ export const Dashboard: React.FC = () => {
     setLoading(true);
 
     try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        setError('Session expired. Please sign in again.');
+        navigate('/login');
+        return;
+      }
+
       const res = await fetch(SCRAPER_ENDPOINTS.ANALYZE, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ product_identifier: identifier }),
       });
 
-      const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      const data = contentType.includes('application/json')
+        ? await res.json()
+        : await res.text();
 
       if (!res.ok) {
-        return setError(data.detail?.[0]?.msg || data.detail || 'Request failed.');
+        if (res.status === 401) {
+          localStorage.removeItem('access_token');
+          setError('Session expired. Please sign in again.');
+          navigate('/login');
+          return;
+        }
+        return setError(getErrorMessage(data));
       }
 
-      setSuccess(data.message);
+      setSuccess('Analysis completed.');
       setIdentifier('');
     } catch {
-      setError('Network error. Please try again.');
+      setError('Network error. Please try again later.');
     } finally {
       setLoading(false);
     }

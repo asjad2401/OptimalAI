@@ -5,12 +5,13 @@ from src.models.amazon import ProductData
 from src.models.scraper import ProductAnalysisRecord
 
 
-async def save_product_analysis(product_identifier: str, data: ProductData) -> str:
+async def save_product_analysis(product_identifier: str, data: ProductData, user_id: str) -> str:
     db = get_database()
     if db is None:
         raise RuntimeError("Database connection is not available")
 
     record = ProductAnalysisRecord(
+        user_id=user_id,
         product_identifier=product_identifier,
         asin=data.asin,
         data=data,
@@ -18,11 +19,13 @@ async def save_product_analysis(product_identifier: str, data: ProductData) -> s
 
     now = datetime.utcnow()
     product_doc = data.model_dump()
-    product_doc["_id"] = data.asin
+    product_doc["_id"] = f"{user_id}:{data.asin}"
+    product_doc["user_id"] = user_id
+    product_doc["asin"] = data.asin
     product_doc["updated_at"] = now
 
     await db["products"].update_one(
-        {"_id": data.asin},
+        {"_id": product_doc["_id"]},
         {
             "$set": product_doc,
             "$setOnInsert": {"created_at": now},
