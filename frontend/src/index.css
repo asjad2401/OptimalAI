@@ -12,6 +12,9 @@
   --error-bg: #FCEAE7;
   --error-text: #993C1D;
   --error-border: rgba(153, 60, 29, 0.27);
+  --success-bg: #E6F4EA;
+  --success-text: #137333;
+  --success-border: rgba(24, 128, 56, 0.27);
   --surface: #FFFFFF;
 
   --font-serif: 'Libre Baskerville', serif;
@@ -50,20 +53,8 @@ input {
   font-family: inherit;
 }
 
-/* Typography Utilities */
-.font-serif {
-  font-family: var(--font-serif);
-}
+/* ─── Auth Layout ─────────────────────────────────────────────── */
 
-.font-sans {
-  font-family: var(--font-sans);
-}
-
-.font-mono {
-  font-family: var(--font-mono);
-}
-
-/* Custom Layout Auth System */
 .auth-container {
   display: flex;
   min-height: 100vh;
@@ -98,7 +89,6 @@ input {
   letter-spacing: 0.25em;
   color: #3D3830;
   margin-top: 4px;
-  /* Tagline specific uppercase if needed */
   text-transform: uppercase;
 }
 
@@ -108,7 +98,6 @@ input {
   gap: 16px;
   margin-top: auto;
   margin-bottom: auto;
-  /* Vertically centered relative to available space */
 }
 
 .auth-brand-panel .hero-heading {
@@ -136,7 +125,6 @@ input {
   flex-direction: column;
   gap: 8px;
   margin-top: 32px;
-  /* some spacing from hero content */
 }
 
 .auth-brand-panel .trust-item {
@@ -154,7 +142,6 @@ input {
   color: var(--border-dark);
 }
 
-/* Right Panel (Form Side) */
 .auth-form-panel {
   display: flex;
   flex-direction: column;
@@ -198,7 +185,23 @@ input {
   margin-bottom: 24px;
 }
 
-/* Forms */
+.mobile-logo-header {
+  display: none;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--primary-text);
+  position: absolute;
+  top: 48px;
+  left: 48px;
+}
+
+.mobile-logo-header .logo-accent {
+  color: var(--accent-gold);
+}
+
+/* ─── Forms ───────────────────────────────────────────────────── */
+
 .form-group {
   margin-bottom: 16px;
 }
@@ -257,7 +260,6 @@ input {
 .form-input:focus {
   border: 1px solid var(--accent-gold);
   padding: 0 13.5px;
-  /* Adjust padding to prevent jumping when border changes from 0.5px to 1px */
 }
 
 .btn-primary {
@@ -272,7 +274,6 @@ input {
   letter-spacing: 0.04em;
   transition: background-color 0.15s ease, transform 0.1s ease;
   margin-top: 8px;
-  /* space between input and button */
 }
 
 .btn-primary:hover {
@@ -281,6 +282,11 @@ input {
 
 .btn-primary:active {
   transform: scale(0.99);
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .form-footer-divider {
@@ -322,21 +328,7 @@ input {
   text-decoration: underline;
 }
 
-/* Mobile specific logo header in the form panel */
-.mobile-logo-header {
-  display: none;
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 16px;
-  color: var(--primary-text);
-  position: absolute;
-  top: 48px;
-  left: 48px;
-}
-
-.mobile-logo-header .logo-accent {
-  color: var(--accent-gold);
-}
+/* ─── Feedback Bars ───────────────────────────────────────────── */
 
 .error-bar {
   background-color: var(--error-bg);
@@ -350,7 +342,125 @@ input {
   color: var(--error-text);
 }
 
-/* Responsive */
+.success-bar {
+  background-color: var(--success-bg);
+  border: 0.5px solid var(--success-border);
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--success-text);
+}
+
+/* ─── Dashboard ───────────────────────────────────────────────── */
+
+.analysis-page {
+  min-height: 100vh;
+  background-color: var(--canvas);
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
+
+.analysis-card {
+  width: 100%;
+  max-width: 560px;
+  background-color: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  padding: 34px;
+}
+
+.analysis-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.analysis-signout {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.analysis-signout:hover {
+  color: var(--primary-text);
+}
+
+.analyze-card-title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 22px;
+  color: var(--primary-text);
+  margin-bottom: 8px;
+}
+
+.analyze-card-description {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  color: var(--secondary-text);
+  margin-bottom: 24px;
+}
+
+.analysis-progress {
+  margin-top: 16px;
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  background-color: var(--surface);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.analysis-progress-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.analysis-progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.analysis-progress-text {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.analysis-progress-step.done .analysis-progress-dot {
+  background-color: var(--success-text);
+}
+
+.analysis-progress-step.done .analysis-progress-text {
+  color: var(--secondary-text);
+}
+
+.analysis-progress-step.active .analysis-progress-dot {
+  background-color: var(--accent-gold);
+  transform: scale(1.2);
+  box-shadow: 0 0 0 4px rgba(196, 169, 107, 0.2);
+}
+
+.analysis-progress-step.active .analysis-progress-text {
+  color: var(--primary-text);
+}
+
+/* ─── Responsive ──────────────────────────────────────────────── */
+
 @media (max-width: 768px) {
   .auth-brand-panel {
     display: none;
@@ -358,6 +468,7 @@ input {
 
   .auth-form-panel {
     width: 100%;
+    padding: 24px;
   }
 
   .mobile-logo-header {
@@ -366,7 +477,11 @@ input {
     left: 24px;
   }
 
-  .auth-form-panel {
+  .analysis-page {
+    padding: 20px;
+  }
+
+  .analysis-card {
     padding: 24px;
   }
 }
