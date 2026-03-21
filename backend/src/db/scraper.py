@@ -35,3 +35,14 @@ async def save_product_analysis(product_identifier: str, data: ProductData, user
 
     await db["product_analyses"].insert_one(record.model_dump(by_alias=True))
     return record.id
+
+
+async def get_product_analysis(analysis_id: str, user_id: str) -> ProductAnalysisRecord | None:
+    db = get_database()
+    if db is None:
+        raise RuntimeError("Database connection is not available")
+
+    doc = await db["product_analyses"].find_one({"_id": analysis_id, "user_id": user_id})
+    if not doc:
+        return None
+    return ProductAnalysisRecord(**doc)

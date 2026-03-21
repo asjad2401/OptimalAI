@@ -43,6 +43,7 @@ export const Register: React.FC = () => {
       if (loginRes.ok) {
         const loginData = await loginRes.json();
         localStorage.setItem('access_token', loginData.access_token);
+        localStorage.setItem('user_email', email);
         navigate('/dashboard');
       } else {
         navigate('/login');

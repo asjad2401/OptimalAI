@@ -34,6 +34,7 @@ class ProductInput(BaseModel):
 class ProductAnalysisResponse(BaseModel):
     status: str
     message: str
+    analysis_id: Optional[str] = None
     data: Optional[ProductData] = None
 
 

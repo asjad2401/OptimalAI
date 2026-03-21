@@ -33,6 +33,7 @@ export const Login: React.FC = () => {
       if (!res.ok) return setError(data.detail || 'Login failed. Please try again.');
 
       localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('user_email', email);
       navigate('/dashboard');
     } catch {
       setError('Network error. Please try again.');
