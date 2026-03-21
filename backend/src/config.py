@@ -4,6 +4,9 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "OptimalAI_MVP1"
     MONGO_URI: str
     DATABASE_NAME: str = "optimal_ai"
+
+    GEMINI_API_KEY: str | None = None
+    GEMINI_MODEL: str = "gemini-3.1-flash-lite-preview"
     
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"

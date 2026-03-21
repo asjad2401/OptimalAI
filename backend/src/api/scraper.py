@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from src.auth.security import get_current_user
 from src.db.scraper import get_product_analysis, save_product_analysis
+from src.llm.recommendations import generate_recommendations
 from src.models.scraper import ProductAnalysisRecord, ProductAnalysisResponse, ProductInput
 from src.scraper.amazon_scraper import scrape_product
 
@@ -33,11 +34,18 @@ async def analyze_product(item: ProductInput, current_user: dict = Depends(get_c
         logger.exception("Unexpected persistence error for %s", item.product_identifier)
         raise HTTPException(status_code=500, detail="Internal persistence error.") from exc
 
+    try:
+        recommendations = await generate_recommendations(data)
+    except Exception as exc:
+        logger.error("AI analysis error for %s: %s", item.product_identifier, exc)
+        raise HTTPException(status_code=503, detail="AI analysis is temporarily unavailable.") from exc
+
     return ProductAnalysisResponse(
         status="success",
         message="Scraped successfully.",
         analysis_id=analysis_id,
         data=data,
+        recommendations=recommendations,
     )
 
 
