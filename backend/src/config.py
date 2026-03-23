@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     DATABASE_NAME: str = "optimal_ai"
 
     GEMINI_API_KEY: str | None = None
-    GEMINI_MODEL: str = "gemini-3.1-flash-lite-preview"
+    GEMINI_MODEL: str = "gemini-3.1-flash-lite-preview" # can be changed depending on availability.
     
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
