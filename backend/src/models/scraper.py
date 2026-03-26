@@ -31,10 +31,23 @@ class ProductInput(BaseModel):
         )
 
 
+class AIRecommendationItem(BaseModel):
+    title: str
+    rationale: str
+    priority: str
+
+
+class AIRecommendations(BaseModel):
+    summary: str
+    recommendations: list[AIRecommendationItem]
+
+
 class ProductAnalysisResponse(BaseModel):
     status: str
     message: str
+    analysis_id: Optional[str] = None
     data: Optional[ProductData] = None
+    recommendations: Optional[AIRecommendations] = None
 
 
 class ProductAnalysisRecord(BaseModel):

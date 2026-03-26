@@ -13,12 +13,41 @@ _DYNAMIC_TIMEOUT_MS = 8_000
 def _parse_bestseller_asins(soup: BeautifulSoup, exclude_asin: str, limit: int) -> list[str]:
     asins: list[str] = []
 
+    def push(asin: str) -> None:
+        clean = asin.strip().upper()
+        if (
+            clean
+            and clean != exclude_asin
+            and re.fullmatch(r"[A-Z0-9]{10}", clean)
+            and clean not in asins
+            and len(asins) < limit
+        ):
+            asins.append(clean)
+
+    ranked_nodes = (
+        soup.select("div[id^='p13n-asin-index-']")
+        or soup.select("div[id='gridItemRoot'], div[id^='gridItemRoot']")
+        or soup.select("ol li")
+    )
+
+    for node in ranked_nodes:
+        if len(asins) >= limit:
+            break
+        data_asin_holder = node.select_one("[data-asin]")
+        if data_asin_holder and data_asin_holder.get("data-asin"):
+            push(data_asin_holder.get("data-asin", ""))
+            if len(asins) >= limit:
+                break
+        link = node.select_one("a[href*='/dp/']")
+        if link:
+            match = re.search(r"/dp/([A-Z0-9]{10})", link.get("href", ""))
+            if match:
+                push(match.group(1))
+
     for el in soup.select("[data-asin]"):
         if len(asins) >= limit:
             break
-        asin = el.get("data-asin", "").strip().upper()
-        if asin and asin != exclude_asin and re.fullmatch(r"[A-Z0-9]{10}", asin) and asin not in asins:
-            asins.append(asin)
+        push(el.get("data-asin", ""))
 
     if len(asins) < limit:
         for a in soup.select("a[href*='/dp/']"):
@@ -26,9 +55,7 @@ def _parse_bestseller_asins(soup: BeautifulSoup, exclude_asin: str, limit: int) 
                 break
             match = re.search(r"/dp/([A-Z0-9]{10})", a.get("href", ""))
             if match:
-                asin = match.group(1).upper()
-                if asin != exclude_asin and asin not in asins:
-                    asins.append(asin)
+                push(match.group(1))
 
     return asins[:limit]
 

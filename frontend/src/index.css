@@ -354,44 +354,132 @@ input {
   color: var(--success-text);
 }
 
-/* ─── Dashboard ───────────────────────────────────────────────── */
+/* ─── App Shell ───────────────────────────────────────────────── */
 
-.analysis-page {
+.app-shell {
   min-height: 100vh;
   background-color: var(--canvas);
-  display: grid;
-  place-items: center;
-  padding: 32px;
 }
 
-.analysis-card {
-  width: 100%;
-  max-width: 560px;
-  background-color: var(--surface);
-  border: 0.5px solid var(--border);
-  border-radius: 4px;
-  padding: 34px;
-}
-
-.analysis-card-top {
+.app-shell-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  border-bottom: 1px solid var(--accent-gold);
+  background-color: var(--ink);
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 20;
 }
 
-.analysis-signout {
+.app-shell-logo {
   font-family: var(--font-sans);
-  font-weight: 400;
-  font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-top: 2px;
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--canvas);
 }
 
-.analysis-signout:hover {
+.logo-accent {
+  color: var(--accent-gold);
+}
+
+.app-shell-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.app-shell-user-email {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #b9ae98;
+}
+
+.app-shell-signout {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--canvas);
+  letter-spacing: 0.03em;
+}
+
+.app-shell-signout:hover {
+  color: var(--accent-gold);
+}
+
+.app-shell-sidebar {
+  position: fixed;
+  top: 52px;
+  left: 0;
+  width: 220px;
+  bottom: 0;
+  border-right: 0.5px solid var(--border);
+  background-color: var(--surface);
+  padding-top: 18px;
+}
+
+.app-shell-nav-link {
+  display: block;
+  position: relative;
+  padding: 11px 18px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--secondary-text);
+}
+
+.app-shell-nav-link:hover {
   color: var(--primary-text);
+}
+
+.app-shell-nav-link.active {
+  color: var(--primary-text);
+  background-color: rgba(196, 169, 107, 0.08);
+}
+
+.app-shell-nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--accent-gold);
+}
+
+.app-shell-main {
+  margin-top: 52px;
+  margin-left: 220px;
+  min-height: calc(100vh - 52px);
+  overflow: auto;
+  padding: 28px;
+}
+
+.page-section {
+  width: 100%;
+}
+
+.page-card {
+  width: 100%;
+  max-width: 920px;
+  background-color: var(--surface);
+  border: 0.5px solid #DDD9D0;
+  border-radius: 4px;
+  padding: 28px;
+  box-shadow: 0 1px 0 rgba(18, 17, 14, 0.05);
+}
+
+.dashboard-placeholder-card {
+  max-width: 640px;
+}
+
+.dashboard-cta {
+  width: auto;
+  min-width: 160px;
+  padding: 0 20px;
 }
 
 .analyze-card-title {
@@ -408,6 +496,230 @@ input {
   font-size: 13px;
   color: var(--secondary-text);
   margin-bottom: 24px;
+}
+
+.report-card {
+  max-width: none;
+}
+
+.my-product-card {
+  margin-bottom: 20px;
+}
+
+.my-product-layout {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.my-product-image {
+  width: 108px;
+  height: 108px;
+  object-fit: cover;
+  border: 0.5px solid var(--border);
+  border-radius: 6px;
+  background-color: var(--canvas);
+  flex-shrink: 0;
+}
+
+.my-product-image-placeholder {
+  background-color: rgba(221, 217, 208, 0.45);
+}
+
+.my-product-details {
+  min-width: 0;
+  flex: 1;
+}
+
+.my-product-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--primary-text);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.my-product-asin-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.my-product-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--secondary-text);
+}
+
+.my-product-value {
+  font-size: 13px;
+  color: var(--primary-text);
+}
+
+.my-product-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.my-product-metric-item {
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  background-color: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.visual-comparison-card {
+  margin-top: 20px;
+}
+
+.visual-chart-title {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 13px;
+  color: #1A1814;
+  margin-bottom: 6px;
+}
+
+.metric-selector {
+  display: inline-flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.metric-selector-btn {
+  border: 0.5px solid #DDD9D0;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--secondary-text);
+  background-color: var(--surface);
+}
+
+.metric-selector-btn.active {
+  border-color: var(--accent-gold);
+  background-color: rgba(196, 169, 107, 0.12);
+  color: var(--primary-text);
+}
+
+.visual-chart-canvas {
+  width: 100%;
+}
+
+.comparison-table-wrap {
+  overflow-x: auto;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 780px;
+}
+
+.comparison-table th,
+.comparison-table td {
+  border: 0.5px solid var(--border);
+  padding: 16px 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.comparison-table thead th {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--secondary-text);
+  background-color: rgba(196, 169, 107, 0.06);
+}
+
+.comparison-table tbody td:first-child {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--secondary-text);
+  min-width: 170px;
+}
+
+.comparison-table .seller-col {
+  border-left: 2px solid var(--accent-gold);
+}
+
+.comparison-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.comparison-header-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.comparison-header img,
+.comparison-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 0.5px solid var(--border);
+  background-color: var(--canvas);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.comparison-header span {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--primary-text);
+}
+
+.comparison-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  border: 0.5px solid transparent;
+}
+
+.comparison-badge.source {
+  background-color: rgba(196, 169, 107, 0.2);
+  color: #6f5a2a;
+  border-color: rgba(196, 169, 107, 0.45);
+}
+
+.comparison-badge.competitor {
+  background-color: rgba(138, 127, 106, 0.16);
+  color: var(--secondary-text);
+  border-color: rgba(138, 127, 106, 0.3);
+}
+
+.comparison-table td.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--primary-text);
+}
+
+.comparison-link {
+  color: var(--accent-gold);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.comparison-link:hover {
+  text-decoration: underline;
 }
 
 .analysis-progress {
@@ -477,11 +789,73 @@ input {
     left: 24px;
   }
 
-  .analysis-page {
+  .app-shell-sidebar {
+    width: 180px;
+  }
+
+  .app-shell-main {
+    margin-left: 180px;
+    padding: 18px;
+  }
+
+  .page-card {
     padding: 20px;
   }
 
-  .analysis-card {
-    padding: 24px;
+  .metric-selector {
+    width: 100%;
+  }
+
+  .my-product-layout {
+    flex-direction: column;
+  }
+
+  .my-product-image {
+    width: 92px;
+    height: 92px;
+  }
+
+  .my-product-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell-navbar {
+    padding: 0 12px;
+  }
+
+  .app-shell-user-email {
+    display: none;
+  }
+
+  .app-shell-sidebar {
+    width: 100%;
+    height: auto;
+    top: 52px;
+    bottom: auto;
+    display: flex;
+    border-right: none;
+    border-bottom: 0.5px solid var(--border);
+    padding-top: 0;
+  }
+
+  .app-shell-nav-link {
+    flex: 1;
+    text-align: center;
+    padding: 10px 8px;
+  }
+
+  .app-shell-nav-link.active::before {
+    width: auto;
+    height: 2px;
+    top: auto;
+    right: 0;
+  }
+
+  .app-shell-main {
+    margin-left: 0;
+    margin-top: 98px;
+    padding: 12px;
   }
 }

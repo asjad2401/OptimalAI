@@ -123,18 +123,21 @@ async def scrape_product(identifier: str) -> ProductData:
     payload = _build_product_payload(asin, url, soup)
     best_seller_link = payload["best_seller_link"]
 
-    competitor_asins = AmazonParser.parse_competitor_asins(soup, exclude_asin=asin)
+    competitor_asins: list[str] = []
 
-    if len(competitor_asins) < 5 and best_seller_link:
+    if best_seller_link:
         try:
-            from_bs = await scrape_competitors(best_seller_link, exclude_asin=asin)
-            for c in from_bs:
-                if c not in competitor_asins:
-                    competitor_asins.append(c)
-                if len(competitor_asins) >= 5:
-                    break
+            competitor_asins = await scrape_competitors(best_seller_link, exclude_asin=asin)
         except Exception as exc:
             print(f"[scraper] bestseller competitor scrape failed: {exc}")
+
+    if len(competitor_asins) < 5:
+        from_product = AmazonParser.parse_competitor_asins(soup, exclude_asin=asin)
+        for c in from_product:
+            if c not in competitor_asins:
+                competitor_asins.append(c)
+            if len(competitor_asins) >= 5:
+                break
 
     competitor_asins = competitor_asins[:5]
     scraped_competitors = await asyncio.gather(

@@ -4,6 +4,10 @@ import { Landing } from './pages/Landing'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import { Dashboard } from './pages/Dashboard'
+import { NewAnalysis } from './pages/NewAnalysis'
+import { Report } from './pages/Report'
+import { AppShell } from './components/AppShell'
+import { RequireAuth } from './components/RequireAuth'
 import './App.css'
 
 function App() {
@@ -13,7 +17,17 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route
+          element={
+            <RequireAuth>
+              <AppShell />
+            </RequireAuth>
+          }
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/analysis/new" element={<NewAnalysis />} />
+          <Route path="/report/:id" element={<Report />} />
+        </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
