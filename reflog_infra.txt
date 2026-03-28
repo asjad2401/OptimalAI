@@ -1,0 +1,5 @@
+﻿30c2b66 infra@{0}: branch: Reset to infra-fixed
+e1e9369 infra@{1}: rebase (finish): refs/heads/infra onto de902e9264d1d1f4c8a490ee570a22503a1b7cd6
+b4341ae infra@{2}: commit: infra: SC56 ΓÇô set up https for all endpoints
+0573c90 infra@{3}: commit: infra: SC58 ΓÇô add input sanitization xss/nosql injection
+f61d4d2 infra@{4}: commit: infra: SC59 ΓÇô set up api logging with timestamps
