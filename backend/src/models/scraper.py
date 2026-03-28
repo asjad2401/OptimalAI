@@ -57,5 +57,17 @@ class ProductAnalysisRecord(BaseModel):
     asin: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     data: ProductData
+    recommendations: Optional[AIRecommendations] = None
 
     model_config = ConfigDict(populate_by_name=True)
+
+
+class AnalysisHistoryItem(BaseModel):
+    analysis_id: str
+    asin: str
+    title: Optional[str] = None
+    image_url: Optional[str] = None
+    price: Optional[float] = None
+    rating: Optional[float] = None
+    review_count: Optional[int] = None
+    created_at: datetime

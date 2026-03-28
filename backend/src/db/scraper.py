@@ -2,7 +2,7 @@ from datetime import datetime
 
 from src.db.connection import get_database
 from src.models.amazon import ProductData
-from src.models.scraper import ProductAnalysisRecord
+from src.models.scraper import AIRecommendations, AnalysisHistoryItem, ProductAnalysisRecord
 
 
 async def save_product_analysis(product_identifier: str, data: ProductData, user_id: str) -> str:
@@ -46,3 +46,61 @@ async def get_product_analysis(analysis_id: str, user_id: str) -> ProductAnalysi
     if not doc:
         return None
     return ProductAnalysisRecord(**doc)
+
+
+async def save_analysis_recommendations(
+    analysis_id: str,
+    user_id: str,
+    recommendations: AIRecommendations,
+) -> None:
+    db = get_database()
+    if db is None:
+        raise RuntimeError("Database connection is not available")
+
+    await db["product_analyses"].update_one(
+        {"_id": analysis_id, "user_id": user_id},
+        {"$set": {"recommendations": recommendations.model_dump()}},
+    )
+
+
+async def get_user_analysis_history(user_id: str, limit: int = 20) -> list[AnalysisHistoryItem]:
+    db = get_database()
+    if db is None:
+        raise RuntimeError("Database connection is not available")
+
+    cursor = (
+        db["product_analyses"]
+        .find(
+            {"user_id": user_id},
+            {
+                "_id": 1,
+                "asin": 1,
+                "created_at": 1,
+                "data.title": 1,
+                "data.image_url": 1,
+                "data.price": 1,
+                "data.rating": 1,
+                "data.review_count": 1,
+            },
+        )
+        .sort("created_at", -1)
+        .limit(limit)
+    )
+
+    items: list[AnalysisHistoryItem] = []
+    async for doc in cursor:
+        data = doc.get("data") or {}
+        items.append(
+            AnalysisHistoryItem(
+                analysis_id=str(doc.get("_id", "")),
+                asin=doc.get("asin", ""),
+                title=data.get("title"),
+                image_url=data.get("image_url"),
+                price=data.get("price"),
+                rating=data.get("rating"),
+                review_count=data.get("review_count"),
+                created_at=doc.get("created_at") or datetime.utcnow(),
+            )
+        )
+
+    return items
