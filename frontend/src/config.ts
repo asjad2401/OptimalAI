@@ -7,5 +7,6 @@ export const AUTH_ENDPOINTS = {
 
 export const SCRAPER_ENDPOINTS = {
   ANALYZE: `${API_BASE_URL}/scraper/analyze`,
+  HISTORY: `${API_BASE_URL}/scraper/history`,
   REPORT: (id: string) => `${API_BASE_URL}/scraper/report/${id}`,
 };

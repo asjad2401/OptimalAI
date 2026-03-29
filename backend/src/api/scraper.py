@@ -3,9 +3,19 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.auth.security import get_current_user
-from src.db.scraper import get_product_analysis, save_product_analysis
+from src.db.scraper import (
+    get_user_analysis_history,
+    get_product_analysis,
+    save_analysis_recommendations,
+    save_product_analysis,
+)
 from src.llm.recommendations import generate_recommendations
-from src.models.scraper import ProductAnalysisRecord, ProductAnalysisResponse, ProductInput
+from src.models.scraper import (
+    AnalysisHistoryItem,
+    ProductAnalysisRecord,
+    ProductAnalysisResponse,
+    ProductInput,
+)
 from src.scraper.amazon_scraper import scrape_product
 
 logger = logging.getLogger(__name__)
@@ -40,6 +50,15 @@ async def analyze_product(item: ProductInput, current_user: dict = Depends(get_c
         logger.error("AI analysis error for %s: %s", item.product_identifier, exc)
         raise HTTPException(status_code=503, detail="AI analysis is temporarily unavailable.") from exc
 
+    try:
+        await save_analysis_recommendations(analysis_id, current_user["_id"], recommendations)
+    except RuntimeError as exc:
+        logger.error("Recommendation persistence error for %s: %s", item.product_identifier, exc)
+        raise HTTPException(status_code=503, detail="Saving analysis is temporarily unavailable.") from exc
+    except Exception as exc:
+        logger.exception("Unexpected recommendation persistence error for %s", item.product_identifier)
+        raise HTTPException(status_code=500, detail="Internal persistence error.") from exc
+
     return ProductAnalysisResponse(
         status="success",
         message="Scraped successfully.",
@@ -64,3 +83,15 @@ async def get_report(analysis_id: str, current_user: dict = Depends(get_current_
         raise HTTPException(status_code=404, detail="Report not found.")
 
     return record
+
+
+@router.get("/history", response_model=list[AnalysisHistoryItem])
+async def get_analysis_history(current_user: dict = Depends(get_current_user)):
+    try:
+        return await get_user_analysis_history(current_user["_id"])
+    except RuntimeError as exc:
+        logger.error("History fetch error for user %s: %s", current_user.get("_id"), exc)
+        raise HTTPException(status_code=503, detail="Fetching history is temporarily unavailable.") from exc
+    except Exception as exc:
+        logger.exception("Unexpected history fetch error for user %s", current_user.get("_id"))
+        raise HTTPException(status_code=500, detail="Internal history fetch error.") from exc

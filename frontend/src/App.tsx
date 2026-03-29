@@ -6,6 +6,7 @@ import { Register } from './pages/Register'
 import { Dashboard } from './pages/Dashboard'
 import { NewAnalysis } from './pages/NewAnalysis'
 import { Report } from './pages/Report'
+import Advice from './pages/Advice'
 import { AppShell } from './components/AppShell'
 import { RequireAuth } from './components/RequireAuth'
 import './App.css'
@@ -27,6 +28,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/analysis/new" element={<NewAnalysis />} />
           <Route path="/report/:id" element={<Report />} />
+          <Route path="/report/:id/advice" element={<Advice />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
