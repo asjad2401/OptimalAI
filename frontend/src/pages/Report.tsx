@@ -364,10 +364,10 @@ export const Report: React.FC = () => {
 
       {!loading && !error && report && (
         <div className="report-next-row">
-          <button className="btn-secondary report-next-btn" onClick={() => navigate('/dashboard')}>
+          <button className="btn-secondary btn-uniform" onClick={() => navigate('/dashboard')}>
             Back
           </button>
-          <button className="btn-primary report-next-btn" onClick={() => navigate(`/report/${id}/advice`)}>
+          <button className="btn-primary btn-uniform" onClick={() => navigate(`/report/${id}/advice`)}>
             Next: AI Recommendations
           </button>
         </div>

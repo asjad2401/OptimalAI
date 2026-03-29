@@ -317,6 +317,18 @@ input {
   cursor: not-allowed;
 }
 
+.btn-uniform {
+  width: auto;
+  min-width: 176px;
+  padding: 0 16px;
+  margin-top: 0;
+}
+
+.btn-uniform-sm {
+  min-width: 132px;
+  padding: 0 12px;
+}
+
 .form-footer-divider {
   display: flex;
   align-items: center;
@@ -504,12 +516,6 @@ input {
   max-width: 640px;
 }
 
-.dashboard-cta {
-  width: auto;
-  min-width: 160px;
-  padding: 0 20px;
-}
-
 .dashboard-toolbar {
   margin-bottom: 16px;
 }
@@ -622,12 +628,6 @@ input {
   font-family: var(--font-sans);
   font-size: 11px;
   color: var(--muted);
-}
-
-.dashboard-history-open {
-  width: auto;
-  min-width: 118px;
-  padding: 0 14px;
 }
 
 .dashboard-summary-card {
@@ -844,16 +844,6 @@ input {
   color: var(--muted);
 }
 
-.last-report-link {
-  font-family: var(--font-sans);
-  font-size: 12px;
-  color: var(--accent-gold);
-}
-
-.last-report-link:hover {
-  text-decoration: underline;
-}
-
 .last-report-title {
   font-family: var(--font-sans);
   font-size: 13px;
@@ -954,25 +944,12 @@ input {
   flex-wrap: wrap;
 }
 
-.report-next-btn {
-  width: auto;
-  min-width: 110px;
-  padding: 0 14px;
-  margin-top: 0;
-}
-
 .report-actions-row {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   flex-wrap: wrap;
-}
-
-.report-action-btn {
-  width: auto;
-  min-width: 220px;
-  margin-top: 0;
 }
 
 .my-product-layout {

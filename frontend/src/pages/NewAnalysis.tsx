@@ -246,7 +246,7 @@ export const NewAnalysis: React.FC = () => {
             {lastReport?.analysisId ? (
               <button
                 type="button"
-                className="last-report-link"
+                className="btn-secondary btn-uniform btn-uniform-sm"
                 onClick={() => navigate(`/report/${lastReport.analysisId}`)}
               >
                 Open Report

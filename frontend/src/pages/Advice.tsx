@@ -111,10 +111,13 @@ export default function Advice() {
           )}
 
           <div className="report-actions-row">
-            <button className="btn-secondary report-action-btn" onClick={() => navigate(`/report/${id}`)}>
+            <button className="btn-secondary btn-uniform" onClick={() => navigate(`/report/${id}`)}>
               Back to Product Metrics
             </button>
-            <button className="btn-primary report-action-btn" onClick={() => navigate('/analysis/new')}>
+            <button className="btn-secondary btn-uniform" onClick={() => navigate('/dashboard')}>
+              Back to Dashboard
+            </button>
+            <button className="btn-primary btn-uniform" onClick={() => navigate('/analysis/new')}>
               Start New Analysis
             </button>
           </div>

@@ -161,7 +161,7 @@ export const Dashboard: React.FC = () => {
           </p>
 
           <div className="dashboard-toolbar">
-            <button className="btn-primary dashboard-cta" onClick={() => navigate('/analysis/new')}>
+            <button className="btn-primary btn-uniform" onClick={() => navigate('/analysis/new')}>
               New Analysis
             </button>
           </div>
@@ -262,7 +262,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <button
-              className="btn-secondary dashboard-history-open"
+              className="btn-secondary btn-uniform"
               onClick={() => navigate(`/report/${selectedItem.analysis_id}`)}
             >
               Open Detailed Report
