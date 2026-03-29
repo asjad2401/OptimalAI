@@ -93,6 +93,19 @@ export const Report: React.FC = () => {
         }
 
         setReport(payload as ReportRecord);
+        const parsed = payload as ReportRecord;
+        localStorage.setItem(
+          'latest_report_snapshot',
+          JSON.stringify({
+            analysisId: id,
+            title: parsed.data?.title,
+            asin: parsed.data?.asin,
+            image_url: parsed.data?.image_url,
+            price: parsed.data?.price,
+            rating: parsed.data?.rating,
+            review_count: parsed.data?.review_count,
+          })
+        );
       } catch {
         setError('Network error. Please try again later.');
       } finally {
@@ -123,6 +136,27 @@ export const Report: React.FC = () => {
       })),
     [products]
   );
+
+  const ratingDomain = useMemo<[number, number]>(() => {
+    const values = chartData
+      .map((item) => item.rating)
+      .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+
+    if (values.length === 0) return [0, 5];
+
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const center = (min + max) / 2;
+
+    // Keep a minimum visible spread so close ratings don't look identical.
+    const span = Math.max(max - min, 0.8);
+    const half = span / 2;
+
+    const lower = Math.max(0, +(center - half).toFixed(2));
+    const upper = Math.min(5, +(center + half).toFixed(2));
+
+    return [lower, upper];
+  }, [chartData]);
 
   return (
     <div className="page-section">
@@ -298,7 +332,7 @@ export const Report: React.FC = () => {
                   tick={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 9, fill: '#8A7F6A' }}
                   axisLine={{ stroke: '#DDD9D0' }}
                   tickLine={{ stroke: '#DDD9D0' }}
-                  domain={selectedMetric === 'rating' ? [0, 5] : undefined}
+                  domain={selectedMetric === 'rating' ? ratingDomain : undefined}
                 />
                 <Tooltip
                   cursor={{ fill: 'rgba(196, 169, 107, 0.08)' }}
@@ -325,6 +359,17 @@ export const Report: React.FC = () => {
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
+      )}
+
+      {!loading && !error && report && (
+        <div className="report-next-row">
+          <button className="btn-secondary report-next-btn" onClick={() => navigate('/dashboard')}>
+            Back
+          </button>
+          <button className="btn-primary report-next-btn" onClick={() => navigate(`/report/${id}/advice`)}>
+            Next: AI Recommendations
+          </button>
         </div>
       )}
     </div>
