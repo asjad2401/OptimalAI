@@ -42,18 +42,20 @@ async def analyze_product(item: ProductInput, current_user: dict = Depends(get_c
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-    try:
-        data = await get_cached_product_data(current_user["_id"], asin)
-    except RuntimeError as exc:
-        logger.error("Cache lookup error for %s: %s", item.product_identifier, exc)
-        raise HTTPException(status_code=503, detail="Fetching cached data is temporarily unavailable.") from exc
-    except Exception as exc:
-        logger.exception("Unexpected cache lookup error for %s", item.product_identifier)
-        raise HTTPException(status_code=500, detail="Internal cache lookup error.") from exc
+    data = None
+    if not item.force_fresh:
+        try:
+            data = await get_cached_product_data(current_user["_id"], asin)
+        except RuntimeError as exc:
+            logger.error("Cache lookup error for %s: %s", item.product_identifier, exc)
+            raise HTTPException(status_code=503, detail="Fetching cached data is temporarily unavailable.") from exc
+        except Exception as exc:
+            logger.exception("Unexpected cache lookup error for %s", item.product_identifier)
+            raise HTTPException(status_code=500, detail="Internal cache lookup error.") from exc
 
     message = "Loaded cached data."
     if data is None:
-        message = "Scraped successfully."
+        message = "Forced fresh scrape completed." if item.force_fresh else "Scraped successfully."
         try:
             data = await scrape_product(asin)
         except ValueError as exc:

@@ -10,6 +10,7 @@ from src.models.amazon import ProductData
 
 class ProductInput(BaseModel):
     product_identifier: str = Field(..., description="Amazon ASIN or product URL")
+    force_fresh: bool = Field(default=False, description="Bypass cache and force a fresh scrape")
 
     @field_validator("product_identifier")
     @classmethod

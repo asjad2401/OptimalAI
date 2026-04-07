@@ -24,6 +24,22 @@ type ReportDetail = {
   };
 };
 
+const getErrorMessage = (payload: unknown): string => {
+  if (!payload) return 'Request failed.';
+  if (typeof payload === 'string') return payload;
+  if (Array.isArray(payload)) {
+    const first = payload[0];
+    return getErrorMessage(first);
+  }
+  if (typeof payload === 'object') {
+    const obj = payload as Record<string, unknown>;
+    if (obj.message) return getErrorMessage(obj.message);
+    if (obj.detail) return getErrorMessage(obj.detail);
+    if (obj.error) return getErrorMessage(obj.error);
+  }
+  return 'Request failed.';
+};
+
 const asPrice = (value?: number | null) => (value === null || value === undefined ? '—' : `$${value.toFixed(2)}`);
 const asRating = (value?: number | null) => (value === null || value === undefined ? '—' : `★ ${value.toFixed(1)}`);
 const asNumber = (value?: number | null) => (value === null || value === undefined ? '—' : String(value));
@@ -38,6 +54,8 @@ export const Dashboard: React.FC = () => {
   const [brokenImageIds, setBrokenImageIds] = useState<Record<string, boolean>>({});
   const [selectedReportDetail, setSelectedReportDetail] = useState<ReportDetail | null>(null);
   const [selectedDetailLoading, setSelectedDetailLoading] = useState(false);
+  const [forceRescrapeLoading, setForceRescrapeLoading] = useState(false);
+  const [forceRescrapeError, setForceRescrapeError] = useState('');
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -149,6 +167,68 @@ export const Dashboard: React.FC = () => {
     setBrokenImageIds((prev) => ({ ...prev, [analysisId]: true }));
   };
 
+  const openNewAnalysis = () => {
+    navigate('/analysis/new');
+  };
+
+  const forceRescrapeSelected = async () => {
+    if (!selectedItem?.asin || forceRescrapeLoading) return;
+
+    setForceRescrapeError('');
+    setForceRescrapeLoading(true);
+
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const res = await fetch(SCRAPER_ENDPOINTS.ANALYZE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          product_identifier: selectedItem.asin,
+          force_fresh: true,
+        }),
+      });
+
+      const contentType = res.headers.get('content-type') || '';
+      const payload = contentType.includes('application/json') ? await res.json() : await res.text();
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('token_type');
+          localStorage.removeItem('user_email');
+          navigate('/login');
+          return;
+        }
+        setForceRescrapeError(getErrorMessage(payload));
+        return;
+      }
+
+      const analysisId =
+        typeof payload === 'object' && payload !== null && 'analysis_id' in payload
+          ? String((payload as Record<string, unknown>).analysis_id || '')
+          : '';
+
+      if (!analysisId) {
+        setForceRescrapeError('Analysis completed but no report id was returned.');
+        return;
+      }
+
+      navigate(`/report/${analysisId}`);
+    } catch {
+      setForceRescrapeError('Network error. Please try again later.');
+    } finally {
+      setForceRescrapeLoading(false);
+    }
+  };
+
   return (
     <div className="page-section">
       <div className="dashboard-page-layout">
@@ -161,7 +241,7 @@ export const Dashboard: React.FC = () => {
           </p>
 
           <div className="dashboard-toolbar">
-            <button className="btn-primary btn-uniform" onClick={() => navigate('/analysis/new')}>
+            <button className="btn-primary btn-uniform" onClick={openNewAnalysis}>
               New Analysis
             </button>
           </div>
@@ -261,12 +341,19 @@ export const Dashboard: React.FC = () => {
               )}
             </div>
 
-            <button
-              className="btn-secondary btn-uniform"
-              onClick={() => navigate(`/report/${selectedItem.analysis_id}`)}
-            >
-              Open Detailed Report
-            </button>
+            {forceRescrapeError && <div className="error-bar dashboard-summary-error">{forceRescrapeError}</div>}
+
+            <div className="dashboard-summary-actions">
+              <button className="btn-primary btn-uniform" onClick={forceRescrapeSelected} disabled={forceRescrapeLoading}>
+                {forceRescrapeLoading ? 'Re-scraping...' : 'Force Re-scrape'}
+              </button>
+              <button
+                className="btn-secondary btn-uniform"
+                onClick={() => navigate(`/report/${selectedItem.analysis_id}`)}
+              >
+                Open Detailed Report
+              </button>
+            </div>
           </div>
         )}
       </div>

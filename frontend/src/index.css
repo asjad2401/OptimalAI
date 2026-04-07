@@ -517,6 +517,9 @@ input {
 }
 
 .dashboard-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
   margin-bottom: 16px;
 }
 
@@ -726,6 +729,16 @@ input {
   color: var(--secondary-text);
 }
 
+.dashboard-summary-error {
+  margin-top: 0;
+}
+
+.dashboard-summary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .analyze-card-title {
   font-family: var(--font-serif);
   font-weight: 400;
@@ -740,6 +753,23 @@ input {
   font-size: 13px;
   color: var(--secondary-text);
   margin-bottom: 24px;
+}
+
+.analysis-option-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 16px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--secondary-text);
+  user-select: none;
+}
+
+.analysis-option-row input {
+  width: 14px;
+  height: 14px;
+  accent-color: #2f5d4f;
 }
 
 .analysis-two-col {
