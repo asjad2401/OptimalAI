@@ -43,6 +43,18 @@ class AIRecommendations(BaseModel):
     recommendations: list[AIRecommendationItem]
 
 
+class ReviewThemeItem(BaseModel):
+    theme: str
+    description: str
+    sentiment: str
+    prevalence: str
+
+
+class ReviewAnalysis(BaseModel):
+    overall_sentiment_summary: str
+    themes: list[ReviewThemeItem]
+
+
 class ProductAnalysisResponse(BaseModel):
     status: str
     message: str
