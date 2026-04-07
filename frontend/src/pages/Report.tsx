@@ -45,6 +45,48 @@ const starsValue = (rating: number | null | undefined) => {
   return `★ ${rating.toFixed(1)}`;
 };
 
+const averageOf = (values: Array<number | null | undefined>) => {
+  const clean = values.filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+  if (clean.length === 0) return null;
+  return clean.reduce((sum, value) => sum + value, 0) / clean.length;
+};
+
+const formatDelta = (delta: number, type: 'price' | 'rating' | 'review_count') => {
+  const abs = Math.abs(delta);
+  if (type === 'price') return `$${abs.toFixed(2)}`;
+  if (type === 'rating') return abs.toFixed(1);
+  return String(Math.round(abs));
+};
+
+const trendAgainstAverage = (
+  value: number | null | undefined,
+  average: number | null | undefined,
+  type: 'price' | 'rating' | 'review_count',
+  betterWhen: 'higher' | 'lower'
+) => {
+  if (value === null || value === undefined || average === null || average === undefined) {
+    return null;
+  }
+
+  const delta = value - average;
+  if (Math.abs(delta) < 0.0001) {
+    return {
+      tone: 'neutral',
+      arrow: '→',
+      label: 'At category average',
+    };
+  }
+
+  const isBetter = betterWhen === 'higher' ? delta > 0 : delta < 0;
+  const isAbove = delta > 0;
+
+  return {
+    tone: isBetter ? 'up' : 'down',
+    arrow: isAbove ? '↑' : '↓',
+    label: `${isAbove ? 'Above' : 'Below'} avg by ${formatDelta(delta, type)}`,
+  };
+};
+
 export const Report: React.FC = () => {
   const { id = '' } = useParams();
   const navigate = useNavigate();
@@ -137,6 +179,24 @@ export const Report: React.FC = () => {
     [products]
   );
 
+  const categoryAverages = useMemo(() => {
+    const competitors = products.slice(1);
+    return {
+      price: averageOf(competitors.map((item) => item.price)),
+      rating: averageOf(competitors.map((item) => item.rating)),
+      review_count: averageOf(competitors.map((item) => item.review_count)),
+    };
+  }, [products]);
+
+  const starsTrend = trendAgainstAverage(seller?.rating, categoryAverages.rating, 'rating', 'higher');
+  const reviewsTrend = trendAgainstAverage(
+    seller?.review_count,
+    categoryAverages.review_count,
+    'review_count',
+    'higher'
+  );
+  const priceTrend = trendAgainstAverage(seller?.price, categoryAverages.price, 'price', 'lower');
+
   const ratingDomain = useMemo<[number, number]>(() => {
     const values = chartData
       .map((item) => item.rating)
@@ -187,14 +247,35 @@ export const Report: React.FC = () => {
                 <div className="my-product-metric-item">
                   <span className="my-product-label">Stars</span>
                   <span className="my-product-value mono">{starsValue(seller.rating)}</span>
+                  <span className="my-product-average mono">Avg: {starsValue(categoryAverages.rating)}</span>
+                  {starsTrend && (
+                    <span className={`my-product-trend ${starsTrend.tone}`}>
+                      <span className="my-product-trend-arrow">{starsTrend.arrow}</span>
+                      {starsTrend.label}
+                    </span>
+                  )}
                 </div>
                 <div className="my-product-metric-item">
                   <span className="my-product-label">Reviews</span>
                   <span className="my-product-value mono">{metricValue(seller.review_count, 'number')}</span>
+                  <span className="my-product-average mono">Avg: {metricValue(categoryAverages.review_count, 'number')}</span>
+                  {reviewsTrend && (
+                    <span className={`my-product-trend ${reviewsTrend.tone}`}>
+                      <span className="my-product-trend-arrow">{reviewsTrend.arrow}</span>
+                      {reviewsTrend.label}
+                    </span>
+                  )}
                 </div>
                 <div className="my-product-metric-item">
                   <span className="my-product-label">Price</span>
                   <span className="my-product-value mono">{metricValue(seller.price, 'price')}</span>
+                  <span className="my-product-average mono">Avg: {metricValue(categoryAverages.price, 'price')}</span>
+                  {priceTrend && (
+                    <span className={`my-product-trend ${priceTrend.tone}`}>
+                      <span className="my-product-trend-arrow">{priceTrend.arrow}</span>
+                      {priceTrend.label}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -211,75 +292,95 @@ export const Report: React.FC = () => {
         {error && <div className="error-bar">{error}</div>}
 
         {!loading && !error && report && (
-          <div className="comparison-table-wrap">
-            <table className="comparison-table">
-              <thead>
-                <tr>
-                  <th>Metric</th>
-                  {products.map((product, index) => (
-                    <th key={`${product.asin}-${index}`} className={index === 0 ? 'seller-col' : ''}>
-                      <div className="comparison-header">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.title || product.asin} />
-                        ) : (
-                          <div className="comparison-placeholder" />
-                        )}
-                        <div className="comparison-header-meta">
-                          <span className={index === 0 ? 'comparison-badge source' : 'comparison-badge competitor'}>
-                            {index === 0 ? 'Your Product' : 'Competitor'}
-                          </span>
-                          <span>{toTitle(product.title)}</span>
+          <div>
+            <div className="comparison-table-wrap">
+              <table className="comparison-table">
+                <thead>
+                  <tr>
+                    <th>Metric</th>
+                    {products.map((product, index) => (
+                      <th key={`${product.asin}-${index}`} className={index === 0 ? 'seller-col' : ''}>
+                        <div className="comparison-header">
+                          {product.image_url ? (
+                            <img src={product.image_url} alt={product.title || product.asin} />
+                          ) : (
+                            <div className="comparison-placeholder" />
+                          )}
+                          <div className="comparison-header-meta">
+                            <span className={index === 0 ? 'comparison-badge source' : 'comparison-badge competitor'}>
+                              {index === 0 ? 'Your Product' : 'Competitor'}
+                            </span>
+                            <span>{toTitle(product.title)}</span>
+                          </div>
                         </div>
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>ASIN</td>
-                  {products.map((product, index) => (
-                    <td key={`asin-${product.asin}-${index}`} className={index === 0 ? 'seller-col mono' : 'mono'}>
-                      {product.asin ? (
-                        product.url ? (
-                          <a className="comparison-link" href={product.url} target="_blank" rel="noreferrer">
-                            {product.asin}
-                          </a>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>ASIN</td>
+                    {products.map((product, index) => (
+                      <td key={`asin-${product.asin}-${index}`} className={index === 0 ? 'seller-col mono' : 'mono'}>
+                        {product.asin ? (
+                          product.url ? (
+                            <a className="comparison-link" href={product.url} target="_blank" rel="noreferrer">
+                              {product.asin}
+                            </a>
+                          ) : (
+                            product.asin
+                          )
                         ) : (
-                          product.asin
-                        )
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>Price</td>
-                  {products.map((product, index) => (
-                    <td key={`price-${product.asin}-${index}`} className={index === 0 ? 'seller-col mono' : 'mono'}>
-                      {metricValue(product.price, 'price')}
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>Rating</td>
-                  {products.map((product, index) => (
-                    <td key={`rating-${product.asin}-${index}`} className={index === 0 ? 'seller-col mono' : 'mono'}>
-                      {metricValue(product.rating, 'number')}
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td>Review Count</td>
-                  {products.map((product, index) => (
-                    <td key={`reviews-${product.asin}-${index}`} className={index === 0 ? 'seller-col mono' : 'mono'}>
-                      {metricValue(product.review_count, 'number')}
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
+                          '—'
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>Price</td>
+                    {products.map((product, index) => (
+                      <td key={`price-${product.asin}-${index}`} className={index === 0 ? 'seller-col mono' : 'mono'}>
+                        {metricValue(product.price, 'price')}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>Rating</td>
+                    {products.map((product, index) => (
+                      <td key={`rating-${product.asin}-${index}`} className={index === 0 ? 'seller-col mono' : 'mono'}>
+                        {metricValue(product.rating, 'number')}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>Review Count</td>
+                    {products.map((product, index) => (
+                      <td key={`reviews-${product.asin}-${index}`} className={index === 0 ? 'seller-col mono' : 'mono'}>
+                        {metricValue(product.review_count, 'number')}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="category-averages-panel">
+              <div className="category-averages-title">Category Averages</div>
+              <div className="category-averages-grid">
+                <div className="category-avg-item">
+                  <span className="category-avg-label">Price</span>
+                  <span className="category-avg-value mono">{metricValue(categoryAverages.price, 'price')}</span>
+                </div>
+                <div className="category-avg-item">
+                  <span className="category-avg-label">Rating</span>
+                  <span className="category-avg-value mono">{starsValue(categoryAverages.rating)}</span>
+                </div>
+                <div className="category-avg-item">
+                  <span className="category-avg-label">Review Count</span>
+                  <span className="category-avg-value mono">{metricValue(categoryAverages.review_count, 'number')}</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
