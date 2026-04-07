@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from src.db.connection import get_database
 from src.models.amazon import ProductData
@@ -46,6 +46,28 @@ async def get_product_analysis(analysis_id: str, user_id: str) -> ProductAnalysi
     if not doc:
         return None
     return ProductAnalysisRecord(**doc)
+
+
+async def get_cached_product_data(
+    user_id: str,
+    asin: str,
+    max_age_hours: int = 48,
+) -> ProductData | None:
+    db = get_database()
+    if db is None:
+        raise RuntimeError("Database connection is not available")
+
+    threshold = datetime.utcnow() - timedelta(hours=max_age_hours)
+    doc = await db["products"].find_one(
+        {
+            "_id": f"{user_id}:{asin}",
+            "updated_at": {"$gte": threshold},
+        }
+    )
+    if not doc:
+        return None
+
+    return ProductData(**doc)
 
 
 async def save_analysis_recommendations(
