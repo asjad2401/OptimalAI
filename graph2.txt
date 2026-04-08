@@ -1,0 +1,27 @@
+* 3131902 chore: added readme.md
+*   803f3d3 chore: merge infra branch into master
+|\  
+| * 61bf3bf infra: SC56 – set up https for all endpoints
+| * 021e2b5 infra: SC58 – add input sanitization xss/nosql injection
+| * 3115c5a infra: SC59 – set up api logging with timestamps
+| * 735e1fc auth: SC17 – private data isolation per user
+|/  
+* e65c35c dashboard: SC47 – bugfix for start new analysis
+*   e71ed9b chore: merge dashboard branch into master
+|\  
+| * ab2f885 dashboard: SC47 – start new analysis from dashboard
+| * 1a3b8c1 dashboard: SC46 – view past reports without re-running
+| * 4bd9a06 dashboard: SC45 – dashboard with analysis history
+|/  
+*   446557d chore: merge analysis branch into master
+|\  
+| * b7f5db6 analysis: SC43 – enforce non-technical recommendation language
+| * 1f37a17 analysis: SC39 – generate ai-driven recommendations
+| * 6bd3a29 analysis: SC44 – integrate gemini api with langchain
+| * 05c74e0 analysis: SC31 – visual comparison with charts and graphs
+| * 579014b analysis: SC30 – side-by-side competitor comparison view
+|/  
+*   09bd2a5 chore: merge scraping branch into master
+|\  
+| * 05ff4fc scraping: SC29 – display loading/progress indicator
+| * c8f5857 scraping: SC28 – handle scraping failures gracefully

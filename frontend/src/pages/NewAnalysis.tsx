@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { SCRAPER_ENDPOINTS } from '../config';
 import { validateProductIdentifier } from '../utils/validation';
 
@@ -53,12 +53,15 @@ const readLastReportSnapshot = (): LastReportSnapshot | null => {
 const asPrice = (value?: number | null) => (value === null || value === undefined ? '—' : `$${value.toFixed(2)}`);
 const asNumber = (value?: number | null) => (value === null || value === undefined ? '—' : String(value));
 const asStars = (value?: number | null) => (value === null || value === undefined ? '—' : `★ ${value.toFixed(1)}`);
+const shouldForceFreshFromSearch = (search: string) => new URLSearchParams(search).get('forceFresh') === '1';
 
 export const NewAnalysis: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [identifier, setIdentifier] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forceFresh, setForceFresh] = useState(() => shouldForceFreshFromSearch(location.search));
   const [progressStep, setProgressStep] = useState(0);
   const [lastReport, setLastReport] = useState<LastReportSnapshot | null>(null);
   const [lastReportImageFailed, setLastReportImageFailed] = useState(false);
@@ -70,6 +73,10 @@ export const NewAnalysis: React.FC = () => {
   useEffect(() => {
     setLastReportImageFailed(false);
   }, [lastReport?.analysisId, lastReport?.image_url]);
+
+  useEffect(() => {
+    setForceFresh(shouldForceFreshFromSearch(location.search));
+  }, [location.search]);
 
   useEffect(() => {
     const hydrateLastReport = async () => {
@@ -153,7 +160,10 @@ export const NewAnalysis: React.FC = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ product_identifier: identifier }),
+        body: JSON.stringify({
+          product_identifier: identifier,
+          force_fresh: forceFresh,
+        }),
       });
 
       const contentType = res.headers.get('content-type') || '';
@@ -216,6 +226,17 @@ export const NewAnalysis: React.FC = () => {
                 disabled={loading}
               />
             </div>
+
+            <label className="analysis-option-row" htmlFor="force-fresh-scrape">
+              <input
+                id="force-fresh-scrape"
+                type="checkbox"
+                checked={forceFresh}
+                onChange={(e) => setForceFresh(e.target.checked)}
+                disabled={loading}
+              />
+              <span>Force fresh scrape (use fresh data, may take longer)</span>
+            </label>
 
             {error && <div className="error-bar">{error}</div>}
 
