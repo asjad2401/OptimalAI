@@ -1052,6 +1052,37 @@ input {
   gap: 3px;
 }
 
+.my-product-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.01em;
+}
+
+.my-product-average {
+  font-size: 10px;
+  color: var(--secondary-text);
+}
+
+.my-product-trend-arrow {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.my-product-trend.up {
+  color: #2f7d4f;
+}
+
+.my-product-trend.down {
+  color: #b34747;
+}
+
+.my-product-trend.neutral {
+  color: var(--secondary-text);
+}
+
 .visual-comparison-card {
   margin-top: 20px;
 }
@@ -1180,6 +1211,50 @@ input {
   background-color: rgba(138, 127, 106, 0.16);
   color: var(--secondary-text);
   border-color: rgba(138, 127, 106, 0.3);
+}
+
+.category-averages-panel {
+  margin-top: 12px;
+  border: 0.5px solid var(--border);
+  border-radius: 6px;
+  background-color: rgba(250, 248, 243, 0.45);
+  padding: 10px 12px;
+}
+
+.category-averages-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.category-averages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.category-avg-item {
+  border: 0.5px solid var(--border);
+  border-radius: 4px;
+  background-color: var(--surface);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.category-avg-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--secondary-text);
+}
+
+.category-avg-value {
+  font-size: 13px;
+  color: var(--primary-text);
 }
 
 .comparison-table td.mono {
