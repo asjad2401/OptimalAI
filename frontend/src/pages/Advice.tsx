@@ -14,6 +14,16 @@ type ReportAdviceResponse = {
     summary?: string;
     recommendations?: RecommendationItem[];
   };
+  review_analysis?: {
+    overall_sentiment_summary: string;
+    themes: {
+      theme: string;
+      description: string;
+      sentiment: string;
+      prevalence: string;
+      actionability: string;
+    }[];
+  };
 };
 
 export default function Advice() {
@@ -97,7 +107,7 @@ export default function Advice() {
           ) : (
             <div className="ai-recommendations-list">
               {items.map((item, index) => (
-                <div key={`${item.title}-${index}`} className="ai-recommendation-item">
+                <div key={`rec-${item.title}-${index}`} className="ai-recommendation-item">
                   <div className="ai-recommendation-top">
                     <h3 className="ai-recommendation-title">{item.title}</h3>
                     <span className={`ai-priority-badge ${item.priority?.toLowerCase() || 'medium'}`}>
@@ -107,6 +117,37 @@ export default function Advice() {
                   <p className="ai-recommendation-rationale">{item.rationale}</p>
                 </div>
               ))}
+            </div>
+          )}
+
+          {report?.review_analysis && (
+            <div className="actionable-themes-section" style={{ marginTop: '2rem' }}>
+              <div className="auth-form-subtitle">CUSTOMER SENTIMENT THEMES</div>
+              <p className="ai-recommendations-summary">{report.review_analysis.overall_sentiment_summary}</p>
+              
+              <div className="ai-recommendations-list">
+                {report.review_analysis.themes.map((theme, index) => (
+                  <div key={`theme-${theme.theme}-${index}`} className="ai-recommendation-item">
+                     <div className="ai-recommendation-top">
+                       <h3 className="ai-recommendation-title">{theme.theme}</h3>
+                       <div style={{display: 'flex', gap: '0.5rem'}}>
+                         <span className={`ai-priority-badge ${theme.sentiment?.toLowerCase() || 'neutral'}`}>
+                           {theme.sentiment}
+                         </span>
+                         <span className="ai-priority-badge medium">
+                           {theme.prevalence} prevalence
+                         </span>
+                       </div>
+                     </div>
+                     <p className="ai-recommendation-rationale" style={{ marginBottom: '0.5rem' }}>
+                       <strong>Description: </strong>{theme.description}
+                     </p>
+                     <p className="ai-recommendation-rationale">
+                       <strong>Action to Take: </strong>{theme.actionability}
+                     </p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

@@ -9,9 +9,11 @@ from src.db.scraper import (
     get_user_analysis_history,
     get_product_analysis,
     save_analysis_recommendations,
+    save_analysis_review_themes,
     save_product_analysis,
 )
 from src.llm.recommendations import generate_recommendations
+from src.llm.reviews import generate_review_themes
 from src.models.scraper import (
     AnalysisHistoryItem,
     ProductAnalysisRecord,
@@ -77,17 +79,19 @@ async def analyze_product(item: ProductInput, current_user: dict = Depends(get_c
 
     try:
         recommendations = await generate_recommendations(data)
+        review_analysis = await generate_review_themes(data)
     except Exception as exc:
         logger.error("AI analysis error for %s: %s", item.product_identifier, exc)
         raise HTTPException(status_code=503, detail="AI analysis is temporarily unavailable.") from exc
 
     try:
         await save_analysis_recommendations(analysis_id, current_user["_id"], recommendations)
+        await save_analysis_review_themes(analysis_id, current_user["_id"], review_analysis)
     except RuntimeError as exc:
-        logger.error("Recommendation persistence error for %s: %s", item.product_identifier, exc)
+        logger.error("Persistence error for %s: %s", item.product_identifier, exc)
         raise HTTPException(status_code=503, detail="Saving analysis is temporarily unavailable.") from exc
     except Exception as exc:
-        logger.exception("Unexpected recommendation persistence error for %s", item.product_identifier)
+        logger.exception("Unexpected persistence error for %s", item.product_identifier)
         raise HTTPException(status_code=500, detail="Internal persistence error.") from exc
 
     return ProductAnalysisResponse(
@@ -96,6 +100,7 @@ async def analyze_product(item: ProductInput, current_user: dict = Depends(get_c
         analysis_id=analysis_id,
         data=data,
         recommendations=recommendations,
+        review_analysis=review_analysis,
     )
 
 

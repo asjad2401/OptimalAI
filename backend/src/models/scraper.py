@@ -48,6 +48,7 @@ class ReviewThemeItem(BaseModel):
     description: str
     sentiment: str
     prevalence: str
+    actionability: str
 
 
 class ReviewAnalysis(BaseModel):
@@ -61,6 +62,7 @@ class ProductAnalysisResponse(BaseModel):
     analysis_id: Optional[str] = None
     data: Optional[ProductData] = None
     recommendations: Optional[AIRecommendations] = None
+    review_analysis: Optional[ReviewAnalysis] = None
 
 
 class ProductAnalysisRecord(BaseModel):
@@ -71,6 +73,7 @@ class ProductAnalysisRecord(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     data: ProductData
     recommendations: Optional[AIRecommendations] = None
+    review_analysis: Optional[ReviewAnalysis] = None
 
     model_config = ConfigDict(populate_by_name=True)
 
