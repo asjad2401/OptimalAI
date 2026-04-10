@@ -53,17 +53,12 @@ class ReviewThemeItem(BaseModel):
 
 class ReviewAnalysis(BaseModel):
     overall_sentiment_summary: str
-<<<<<<< Updated upstream
-    overall_sentiment_score: Optional[int] = None
-    themes: list[ReviewThemeItem]
-=======
     what_we_do_well: str
     strategies_to_improve: str
     competitor_weaknesses: str
     overall_sentiment_score: Optional[int] = None
     competitor_sentiment_scores: Optional[dict[str, int]] = None
     themes: Optional[list[ReviewThemeItem]] = None
->>>>>>> Stashed changes
 
 
 class ProductAnalysisResponse(BaseModel):

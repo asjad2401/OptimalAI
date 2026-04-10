@@ -79,8 +79,6 @@ async def generate_review_themes(data: ProductData) -> ReviewAnalysis:
         total = sum((r.rating - 1) * 25 for r in valid_reviews)
         analysis.overall_sentiment_score = int(total / len(valid_reviews))
 
-<<<<<<< Updated upstream
-=======
     comp_scores = {}
     for comp in data.competitors:
         if not comp.asin:
@@ -93,5 +91,4 @@ async def generate_review_themes(data: ProductData) -> ReviewAnalysis:
     
     analysis.competitor_sentiment_scores = comp_scores
 
->>>>>>> Stashed changes
     return analysis

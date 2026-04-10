@@ -26,15 +26,11 @@ type ReportAdviceResponse = {
   };
   review_analysis?: {
     overall_sentiment_summary: string;
-<<<<<<< Updated upstream
-    overall_sentiment_score?: number;
-=======
     what_we_do_well?: string;
     strategies_to_improve?: string;
     competitor_weaknesses?: string;
     overall_sentiment_score?: number;
     competitor_sentiment_scores?: Record<string, number>;
->>>>>>> Stashed changes
     themes: {
       theme: string;
       description: string;
@@ -140,40 +136,6 @@ export default function Advice() {
           )}
 
           {report?.review_analysis && (
-<<<<<<< Updated upstream
-            <div className="actionable-themes-section" style={{ marginTop: '2rem' }}>
-              <div className="auth-form-subtitle">CUSTOMER SENTIMENT THEMES</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                <h3 style={{ fontSize: '2.5rem', fontWeight: 600, color: '#C4A96B', margin: 0 }}>
-                  {report.review_analysis.overall_sentiment_score ?? 50}/100
-                </h3>
-                <span className="ai-recommendations-summary" style={{ margin: 0 }}>
-                  Overall Sentiment Score
-                </span>
-              </div>
-              <p className="ai-recommendations-summary">{report.review_analysis.overall_sentiment_summary}</p>
-
-              <div className="ai-recommendations-list">
-                {report.review_analysis.themes.map((theme, index) => (
-                  <div key={`theme-${theme.theme}-${index}`} className="ai-recommendation-item">
-                    <div className="ai-recommendation-top">
-                      <h3 className="ai-recommendation-title">{theme.theme}</h3>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <span className={`ai-priority-badge ${theme.sentiment?.toLowerCase() || 'neutral'}`}>
-                          {theme.sentiment}
-                        </span>
-                        <span className="ai-priority-badge medium">
-                          {theme.prevalence} prevalence
-                        </span>
-                      </div>
-                    </div>
-                    <p className="ai-recommendation-rationale" style={{ marginBottom: '0.5rem' }}>
-                      <strong>Description: </strong>{theme.description}
-                    </p>
-                    <p className="ai-recommendation-rationale">
-                      <strong>Action to Take: </strong>{theme.actionability}
-                    </p>
-=======
             <div className="actionable-themes-section" style={{ marginTop: '3rem' }}>
               <div className="auth-form-subtitle">CUSTOMER SENTIMENT & COMPETITOR COMPARISON</div>
 
@@ -187,7 +149,6 @@ export default function Advice() {
                     <span className="ai-recommendations-summary" style={{ margin: 0 }}>
                       Overall Sentiment Score
                     </span>
->>>>>>> Stashed changes
                   </div>
                   <p className="ai-recommendations-summary" style={{ marginBottom: '2rem' }}>
                     {report.review_analysis.overall_sentiment_summary}
