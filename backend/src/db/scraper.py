@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from src.db.connection import get_database
 from src.models.amazon import ProductData
-from src.models.scraper import AIRecommendations, AnalysisHistoryItem, ProductAnalysisRecord
+from src.models.scraper import AIRecommendations, AnalysisHistoryItem, ProductAnalysisRecord, ReviewAnalysis
 
 
 async def save_product_analysis(product_identifier: str, data: ProductData, user_id: str) -> str:
@@ -82,6 +82,21 @@ async def save_analysis_recommendations(
     await db["product_analyses"].update_one(
         {"_id": analysis_id, "user_id": user_id},
         {"$set": {"recommendations": recommendations.model_dump()}},
+    )
+
+
+async def save_analysis_review_themes(
+    analysis_id: str,
+    user_id: str,
+    review_analysis: ReviewAnalysis,
+) -> None:
+    db = get_database()
+    if db is None:
+        raise RuntimeError("Database connection is not available")
+
+    await db["product_analyses"].update_one(
+        {"_id": analysis_id, "user_id": user_id},
+        {"$set": {"review_analysis": review_analysis.model_dump()}},
     )
 
 

@@ -43,12 +43,31 @@ class AIRecommendations(BaseModel):
     recommendations: list[AIRecommendationItem]
 
 
+class ReviewThemeItem(BaseModel):
+    theme: str
+    description: str
+    sentiment: str
+    prevalence: str
+    actionability: str
+
+
+class ReviewAnalysis(BaseModel):
+    overall_sentiment_summary: str
+    what_we_do_well: str
+    strategies_to_improve: str
+    competitor_weaknesses: str
+    overall_sentiment_score: Optional[int] = None
+    competitor_sentiment_scores: Optional[dict[str, int]] = None
+    themes: Optional[list[ReviewThemeItem]] = None
+
+
 class ProductAnalysisResponse(BaseModel):
     status: str
     message: str
     analysis_id: Optional[str] = None
     data: Optional[ProductData] = None
     recommendations: Optional[AIRecommendations] = None
+    review_analysis: Optional[ReviewAnalysis] = None
 
 
 class ProductAnalysisRecord(BaseModel):
@@ -59,6 +78,7 @@ class ProductAnalysisRecord(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     data: ProductData
     recommendations: Optional[AIRecommendations] = None
+    review_analysis: Optional[ReviewAnalysis] = None
 
     model_config = ConfigDict(populate_by_name=True)
 
