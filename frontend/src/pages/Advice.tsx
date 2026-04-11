@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SCRAPER_ENDPOINTS } from '../config';
+import { downloadReportPdf, type ReportForPdf } from '../utils/reportPdf';
 
 type RecommendationItem = {
   title: string;
@@ -11,13 +12,23 @@ type RecommendationItem = {
 type CompetitorInfo = {
   asin: string;
   title?: string | null;
+  url?: string | null;
+  price?: number | null;
+  rating?: number | null;
+  review_count?: number | null;
+  image_url?: string | null;
 };
 
-type ReportAdviceResponse = {
+type ReportAdviceResponse = ReportForPdf & {
   _id: string;
   data?: {
     asin?: string;
     title?: string | null;
+    url?: string | null;
+    price?: number | null;
+    rating?: number | null;
+    review_count?: number | null;
+    image_url?: string | null;
     competitors?: CompetitorInfo[];
   };
   recommendations?: {
@@ -48,6 +59,8 @@ export default function Advice() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<ReportAdviceResponse | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   useEffect(() => {
     const fetchAdvice = async () => {
@@ -94,6 +107,20 @@ export default function Advice() {
 
   const items = report?.recommendations?.recommendations || [];
 
+  const handleDownloadPdf = async () => {
+    if (!report) return;
+    setPdfError(null);
+    setIsDownloadingPdf(true);
+
+    try {
+      await downloadReportPdf(report);
+    } catch {
+      setPdfError('Could not generate the PDF report. Please try again.');
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   return (
     <div className="report-page">
       <h1 className="auth-title">AI Recommendations</h1>
@@ -112,7 +139,17 @@ export default function Advice() {
 
       {!loading && !error && (
         <div className="page-card report-card ai-recommendations-card">
-          <div className="auth-form-subtitle">ACTION PLAN</div>
+          <div className="report-download-topbar">
+            <div className="auth-form-subtitle" style={{ marginBottom: 0 }}>RECOMMENDED ACTION PLAN</div>
+            <button
+              className="btn-primary btn-uniform report-download-button"
+              onClick={handleDownloadPdf}
+              disabled={!report || isDownloadingPdf}
+            >
+              {isDownloadingPdf ? 'Generating PDF…' : 'Download PDF Report'}
+            </button>
+          </div>
+          {pdfError && <div className="error-bar">{pdfError}</div>}
           {report?.recommendations?.summary && (
             <p className="ai-recommendations-summary">{report.recommendations.summary}</p>
           )}
@@ -137,7 +174,7 @@ export default function Advice() {
 
           {report?.review_analysis && (
             <div className="actionable-themes-section" style={{ marginTop: '3rem' }}>
-              <div className="auth-form-subtitle">CUSTOMER SENTIMENT & COMPETITOR COMPARISON</div>
+              <div className="auth-form-subtitle">CUSTOMER SENTIMENT & COMPETITOR SNAPSHOT</div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', marginTop: '1.5rem' }}>
                 {/* Bottom Left: Product Sentiment Insights */}

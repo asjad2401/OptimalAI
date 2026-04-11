@@ -899,6 +899,15 @@ input {
   margin-bottom: 20px;
 }
 
+.report-download-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
 .ai-recommendations-summary {
   font-family: var(--font-sans);
   font-size: 13px;
