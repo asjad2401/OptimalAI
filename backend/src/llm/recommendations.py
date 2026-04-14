@@ -113,22 +113,34 @@ async def generate_recommendations(data: ProductData) -> AIRecommendations:
         "Do not output vague advice like 'improve quality' without exact next steps."
     )
 
-    return await structured_llm.ainvoke(
-        [
-            SystemMessage(
-                content=(
-                    "You are a senior ecommerce growth consultant for Amazon sellers. "
-                    "Your recommendations must be practical, specific, non-technical, and directly tied to the provided product and competitor data. "
-                    "Prefer concise, high-signal recommendations over long explanations."
-                )
-            ),
-            HumanMessage(
-                content=(
-                    "Analyze the seller against competitors and generate actionable recommendations.\n"
-                    f"Rules:\n{prompt_rules}\n\n"
-                    f"Structured product data:\n{json.dumps(payload, ensure_ascii=False)}\n\n"
-                    f"Business comparison context:\n{json.dumps(business_context, ensure_ascii=False)}"
-                )
-            ),
-        ]
-    )
+    messages = [
+        SystemMessage(
+            content=(
+                "You are a senior ecommerce growth consultant for Amazon sellers. "
+                "Your recommendations must be practical, specific, non-technical, and directly tied to the provided product and competitor data. "
+                "Prefer concise, high-signal recommendations over long explanations."
+            )
+        ),
+        HumanMessage(
+            content=(
+                "Analyze the seller against competitors and generate actionable recommendations.\n"
+                f"Rules:\n{prompt_rules}\n\n"
+                f"Structured product data:\n{json.dumps(payload, ensure_ascii=False)}\n\n"
+                f"Business comparison context:\n{json.dumps(business_context, ensure_ascii=False)}"
+            )
+        ),
+    ]
+
+    try:
+        return await structured_llm.ainvoke(messages)
+    except Exception as e:
+        if "503" in str(e) or "UNAVAILABLE" in str(e):
+            print(f"Main model {settings.GEMINI_MODEL} failed, trying fallback {settings.GEMINI_FALLBACK_MODEL}. Error: {e}")
+            fallback_llm = ChatGoogleGenerativeAI(
+                model=settings.GEMINI_FALLBACK_MODEL,
+                google_api_key=settings.GEMINI_API_KEY,
+                temperature=0.1,
+            )
+            fallback_structured_llm = fallback_llm.with_structured_output(AIRecommendations)
+            return await fallback_structured_llm.ainvoke(messages)
+        raise e

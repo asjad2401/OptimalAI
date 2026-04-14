@@ -25,6 +25,32 @@ class AmazonParser:
         return text or None
 
     @staticmethod
+    def _extract_numeric_token(text: str) -> Optional[float]:
+        if not text:
+            return None
+
+        cleaned = text.replace("\u00a0", " ").strip()
+        match = re.search(r"(\d+[\d.,]*)", cleaned)
+        if not match:
+            return None
+
+        token = match.group(1).replace(" ", "")
+        if "," in token and "." in token:
+            if token.rfind(",") > token.rfind("."):
+                token = token.replace(".", "").replace(",", ".")
+            else:
+                token = token.replace(",", "")
+        elif token.count(",") == 1 and token.count(".") == 0:
+            token = token.replace(",", ".")
+        else:
+            token = token.replace(",", "")
+
+        try:
+            return float(token)
+        except Exception:
+            return None
+
+    @staticmethod
     def parse_title(soup: BeautifulSoup) -> Optional[str]:
         try:
             tag = soup.select_one("#productTitle")
@@ -63,11 +89,24 @@ class AmazonParser:
     @staticmethod
     def parse_rating(soup: BeautifulSoup) -> Optional[float]:
         try:
-            tag = soup.select_one(
-                "span[data-hook='rating-out-of-text'], span#acrPopover, i.a-icon-star span"
-            )
-            if tag and (match := re.search(r"([\d.]+) out of", tag.get_text())):
-                return float(match.group(1))
+            selectors = [
+                "span[data-hook='rating-out-of-text']",
+                "span#acrPopover",
+                "span#acrPopover span.a-icon-alt",
+                "i.a-icon-star span.a-icon-alt",
+                "div#averageCustomerReviews span.a-icon-alt",
+                "i[data-hook='average-star-rating'] span.a-icon-alt",
+            ]
+
+            for selector in selectors:
+                tag = soup.select_one(selector)
+                if not tag:
+                    continue
+
+                text = tag.get_text(" ", strip=True)
+                value = AmazonParser._extract_numeric_token(text)
+                if value is not None and 0 <= value <= 5:
+                    return value
         except Exception:
             pass
         return None
@@ -75,9 +114,24 @@ class AmazonParser:
     @staticmethod
     def parse_review_count(soup: BeautifulSoup) -> int:
         try:
-            tag = soup.select_one("#acrCustomerReviewText")
-            if tag and (match := re.search(r"([\d,]+)", tag.get_text(strip=True))):
-                return int(match.group(1).replace(",", ""))
+            selectors = [
+                "#acrCustomerReviewText",
+                "span[data-hook='total-review-count']",
+                "div#averageCustomerReviews span[data-csa-c-content-id='acrCustomerReviewText']",
+                "a[href*='#customerReviews'] span",
+            ]
+
+            for selector in selectors:
+                tag = soup.select_one(selector)
+                if not tag:
+                    continue
+                text = tag.get_text(" ", strip=True)
+                match = re.search(r"([\d.,\s]+)", text)
+                if not match:
+                    continue
+                normalized = re.sub(r"[^\d]", "", match.group(1))
+                if normalized:
+                    return int(normalized)
         except Exception:
             pass
         return 0
@@ -85,9 +139,27 @@ class AmazonParser:
     @staticmethod
     def parse_price(soup: BeautifulSoup) -> Optional[float]:
         try:
-            tag = soup.select_one("span.a-price span.a-offscreen")
-            if tag and (match := re.search(r"[\d.]+", tag.get_text(strip=True))):
-                return float(match.group(0))
+            selectors = [
+                "span.a-price span.a-offscreen",
+                "#corePrice_feature_div span.a-price span.a-offscreen",
+                "#corePriceDisplay_desktop_feature_div span.a-price span.a-offscreen",
+                "#apex_desktop span.a-price span.a-offscreen",
+                "#priceblock_ourprice",
+                "#priceblock_dealprice",
+                "#price_inside_buybox",
+                "span[data-a-color='price'] span.a-offscreen",
+                "span.aok-offscreen",
+            ]
+
+            for selector in selectors:
+                tag = soup.select_one(selector)
+                if not tag:
+                    continue
+
+                text = tag.get_text(" ", strip=True) or tag.get("aria-label", "")
+                value = AmazonParser._extract_numeric_token(text)
+                if value is not None and value > 0:
+                    return value
         except Exception:
             pass
         return None
@@ -169,21 +241,17 @@ class AmazonParser:
 
     @staticmethod
     def get_best_seller_link(soup: BeautifulSoup) -> Optional[str]:
+        # Step 1: from breadcrumbs, use the last anchor (most specific category)
         _SELECTORS = [
-            "div.zg-bf-badge-wrapper a.badge-link",
-            "#detailBullets_feature_div ul.zg_hrsr li a",
-            "#detailBullets_feature_div a[href*='/bestsellers/']",
-            "#productDetails_detailBullets_sections1 a[href*='/bestsellers/']",
-            "#productDetails_db_sections a[href*='/bestsellers/']",
-            "table#productDetails_techSpec_section_1 a[href*='/bestsellers/']",
-            "#SalesRank a[href*='/bestsellers/']",
-            "a[href*='/gp/bestsellers/']",
+            "#wayfinding-breadcrumbs_feature_div ul a",
+            "#wayfinding-breadcrumbs_feature_div a",
         ]
         try:
             for selector in _SELECTORS:
-                el = soup.select_one(selector)
-                if el and el.get("href"):
-                    return el.get("href")
+                anchors = soup.select(selector)
+                anchors = [a for a in anchors if a.get("href")]
+                if anchors:
+                    return anchors[-1].get("href")
         except Exception:
             pass
         return None
@@ -192,10 +260,20 @@ class AmazonParser:
     def parse_competitor_asins(soup: BeautifulSoup, exclude_asin: str, limit: int = 5) -> List[str]:
         try:
             asins: List[str] = []
-            items = soup.select("div[id^='gridItemRoot']") or soup.select("li.a-carousel-card")
+            items = (
+                soup.select("div[id^='gridItemRoot']")
+                or soup.select("li.a-carousel-card")
+                or soup.select("div[data-asin]")
+                or soup.select("div.s-result-item")
+            )
             for item in items:
                 if len(asins) >= limit:
                     break
+                item_asin = (item.get("data-asin") or "").strip().upper()
+                if re.fullmatch(r"[A-Z0-9]{10}", item_asin) and item_asin != exclude_asin and item_asin not in asins:
+                    asins.append(item_asin)
+                    if len(asins) >= limit:
+                        break
                 link = item.select_one("a[href*='/dp/']")
                 if not link:
                     continue

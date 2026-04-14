@@ -57,45 +57,10 @@ async def _load_soup(asin: str) -> tuple[str, BeautifulSoup]:
 
 
 def _build_product_payload(asin: str, url: str, soup: BeautifulSoup) -> dict:
-    title = AmazonParser.parse_title(soup)
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    best_seller_link = AmazonParser.get_best_seller_link(soup)
-
-    competitor_asins = AmazonParser.parse_competitor_asins(soup, exclude_asin=asin)
-
-    if len(competitor_asins) < 5 and best_seller_link:
-        try:
-            from_bs = await scrape_competitors(best_seller_link, exclude_asin=asin)
-            for c in from_bs:
-                if c not in competitor_asins:
-                    competitor_asins.append(c)
-                if len(competitor_asins) >= 5:
-                    break
-        except Exception as exc:
-            print(f"[scraper] bestseller competitor scrape failed: {exc}")
->>>>>>> b643191 (scraping: SC23 - identify top competitor products)
-
-    return ProductData(
-        asin=asin,
-        url=url,
-        title=title,
-        bullet_points=AmazonParser.parse_bullet_points(soup),
-        specifications=AmazonParser.parse_specifications(soup),
-        rating=AmazonParser.parse_rating(soup),
-        review_count=AmazonParser.parse_review_count(soup),
-        price=AmazonParser.parse_price(soup),
-        image_url=AmazonParser.parse_image_url(soup),
-        reviews=AmazonParser.parse_reviews(soup, limit=10),
-<<<<<<< HEAD
-        best_seller_link=AmazonParser.get_best_seller_link(soup),
-=======
-    best_seller_link = AmazonParser.get_best_seller_link(soup)
     return {
         "asin": asin,
         "url": url,
-        "title": title,
+        "title": AmazonParser.parse_title(soup),
         "bullet_points": AmazonParser.parse_bullet_points(soup),
         "specifications": AmazonParser.parse_specifications(soup),
         "rating": AmazonParser.parse_rating(soup),
@@ -103,7 +68,7 @@ def _build_product_payload(asin: str, url: str, soup: BeautifulSoup) -> dict:
         "price": AmazonParser.parse_price(soup),
         "image_url": AmazonParser.parse_image_url(soup),
         "reviews": AmazonParser.parse_reviews(soup, limit=10),
-        "best_seller_link": best_seller_link,
+        "best_seller_link": AmazonParser.get_best_seller_link(soup),
     }
 
 
@@ -121,16 +86,20 @@ async def scrape_product(identifier: str) -> ProductData:
     asin = _asin_from_identifier(identifier)
     url, soup = await _load_soup(asin)
     payload = _build_product_payload(asin, url, soup)
-    best_seller_link = payload["best_seller_link"]
 
+    category_link = payload["best_seller_link"]
     competitor_asins: list[str] = []
 
-    if best_seller_link:
+    # Step 1 + Step 2: use breadcrumb category page and extract top results from .s-main-slot
+    if category_link:
         try:
-            competitor_asins = await scrape_competitors(best_seller_link, exclude_asin=asin)
+            competitor_asins = await scrape_competitors(category_link, exclude_asin=asin)
         except Exception as exc:
-            print(f"[scraper] bestseller competitor scrape failed: {exc}")
+            print(f"[scraper] category competitor scrape failed: {exc}")
+    else:
+        print("[scraper] warning: no breadcrumb category link found.")
 
+    # Minimal fallback when breadcrumbs are unavailable
     if len(competitor_asins) < 5:
         from_product = AmazonParser.parse_competitor_asins(soup, exclude_asin=asin)
         for c in from_product:
@@ -140,6 +109,7 @@ async def scrape_product(identifier: str) -> ProductData:
                 break
 
     competitor_asins = competitor_asins[:5]
+
     scraped_competitors = await asyncio.gather(
         *[_scrape_competitor_product(c_asin) for c_asin in competitor_asins]
     )
@@ -149,9 +119,4 @@ async def scrape_product(identifier: str) -> ProductData:
         **payload,
         competitor_asins=competitor_asins,
         competitors=competitors,
->>>>>>> 6e2bd83 (scraping: SC24 - scrape competitor product data)
-=======
-        best_seller_link=best_seller_link,
-        competitor_asins=competitor_asins[:5],
->>>>>>> b643191 (scraping: SC23 - identify top competitor products)
     )

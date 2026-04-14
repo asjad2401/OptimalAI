@@ -53,24 +53,37 @@ async def generate_review_themes(data: ProductData) -> ReviewAnalysis:
         "Write in plain, objective language. Do not output technical jargon or subjective fluff.\n"
     )
 
-    analysis = await structured_llm.ainvoke(
-        [
-            SystemMessage(
-                content=(
-                    "You are a qualitative data analyst specializing in customer sentiment and reviews. "
-                    "Extract structured themes and patterns from customer feedback. "
-                    "Prefer concise, high-signal analysis."
-                )
-            ),
-            HumanMessage(
-                content=(
-                    "Analyze the product reviews and determine the main themes and patterns.\n"
-                    f"Rules:\n{prompt_rules}\n\n"
-                    f"Product reviews:\n{json.dumps(payload, ensure_ascii=False)}"
-                )
-            ),
-        ]
-    )
+    messages = [
+        SystemMessage(
+            content=(
+                "You are a qualitative data analyst specializing in customer sentiment and reviews. "
+                "Extract structured themes and patterns from customer feedback. "
+                "Prefer concise, high-signal analysis."
+            )
+        ),
+        HumanMessage(
+            content=(
+                "Analyze the product reviews and determine the main themes and patterns.\n"
+                f"Rules:\n{prompt_rules}\n\n"
+                f"Product reviews:\n{json.dumps(payload, ensure_ascii=False)}"
+            )
+        ),
+    ]
+
+    try:
+        analysis = await structured_llm.ainvoke(messages)
+    except Exception as e:
+        if "503" in str(e) or "UNAVAILABLE" in str(e):
+            print(f"Main model {settings.GEMINI_MODEL} failed, trying fallback {settings.GEMINI_FALLBACK_MODEL}. Error: {e}")
+            fallback_llm = ChatGoogleGenerativeAI(
+                model=settings.GEMINI_FALLBACK_MODEL,
+                google_api_key=settings.GEMINI_API_KEY,
+                temperature=0.1,
+            )
+            fallback_structured_llm = fallback_llm.with_structured_output(ReviewAnalysis)
+            analysis = await fallback_structured_llm.ainvoke(messages)
+        else:
+            raise e
 
     valid_reviews = [r for r in data.reviews if r.rating]
     if not valid_reviews:

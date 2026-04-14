@@ -24,38 +24,25 @@ def _parse_bestseller_asins(soup: BeautifulSoup, exclude_asin: str, limit: int) 
         ):
             asins.append(clean)
 
-    ranked_nodes = (
-        soup.select("div[id^='p13n-asin-index-']")
-        or soup.select("div[id='gridItemRoot'], div[id^='gridItemRoot']")
-        or soup.select("ol li")
+    ranked_nodes = soup.select(
+        ".s-main-slot div.s-result-item[data-component-type='s-search-result'][data-asin]"
     )
 
     for node in ranked_nodes:
         if len(asins) >= limit:
             break
-        data_asin_holder = node.select_one("[data-asin]")
-        if data_asin_holder and data_asin_holder.get("data-asin"):
-            push(data_asin_holder.get("data-asin", ""))
-            if len(asins) >= limit:
-                break
-        link = node.select_one("a[href*='/dp/']")
-        if link:
-            match = re.search(r"/dp/([A-Z0-9]{10})", link.get("href", ""))
-            if match:
-                push(match.group(1))
+        asin = (node.get("data-asin") or "").strip().upper()
+        title_el = node.select_one("h2 span")
+        title = title_el.get_text(" ", strip=True) if title_el else ""
 
-    for el in soup.select("[data-asin]"):
-        if len(asins) >= limit:
-            break
-        push(el.get("data-asin", ""))
+        if not asin or not re.fullmatch(r"[A-Z0-9]{10}", asin):
+            continue
 
-    if len(asins) < limit:
-        for a in soup.select("a[href*='/dp/']"):
-            if len(asins) >= limit:
-                break
-            match = re.search(r"/dp/([A-Z0-9]{10})", a.get("href", ""))
-            if match:
-                push(match.group(1))
+        if asin == exclude_asin:
+            continue
+
+        if title:
+            push(asin)
 
     return asins[:limit]
 
@@ -71,7 +58,7 @@ async def scrape_competitors(bestseller_path: str, exclude_asin: str, limit: int
 
         await page.wait_for_timeout(_STATIC_DELAY_MS)
         try:
-            await page.wait_for_selector("[data-asin]", timeout=_DYNAMIC_TIMEOUT_MS)
+            await page.wait_for_selector(".s-main-slot", timeout=_DYNAMIC_TIMEOUT_MS)
         except PlaywrightTimeout:
             pass
 
